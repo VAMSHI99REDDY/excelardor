@@ -145,23 +145,24 @@ const Services = () => {
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: index * 0.05 }}
-              className="group bg-transparent p-8 flex flex-col h-full relative overflow-hidden transition-colors duration-500 hover:bg-black/5"
+              className={`group bg-transparent p-8 flex flex-col h-full relative overflow-hidden transition-colors duration-500 hover:bg-black/5 ${index === 10 ? "sm:col-span-2 lg:col-span-2 xl:col-span-5" : ""}`}
             >
-
-              <div className="relative z-10 flex flex-col h-full">
-                <div className="mb-8 text-black/40 group-hover:text-blue-600 transition-colors duration-500">
-                  {React.cloneElement(service.icon as React.ReactElement<any>, { size: 20 })}
+              <div className={`relative z-10 flex h-full ${index === 10 ? "flex-col xl:flex-row xl:items-center xl:gap-8" : "flex-col"}`}>
+                <div className={`${index === 10 ? "mb-4 xl:mb-0 xl:flex-shrink-0" : "mb-8"} text-black/40 group-hover:text-blue-600 transition-colors duration-500`}>
+                  {React.cloneElement(service.icon as React.ReactElement<any>, { size: index === 10 ? 24 : 20 })}
                 </div>
-                <h3 className="text-lg font-bold text-black mb-3 leading-tight">
-                  {service.title}
-                </h3>
-                <p className="text-black/60 font-medium text-[13px] leading-relaxed mb-4 flex-grow">
-                  {service.description}
-                </p>
+                
+                <div className={`flex flex-col ${index === 10 ? "xl:flex-row xl:items-center xl:gap-8 xl:flex-grow" : "h-full"}`}>
+                  <h3 className={`text-lg font-bold text-black mb-3 leading-tight ${index === 10 ? "xl:mb-0 xl:min-w-[280px]" : ""}`}>
+                    {service.title}
+                  </h3>
+                  <p className="text-black/60 font-medium text-[13px] leading-relaxed mb-4 xl:mb-0 flex-grow">
+                    {service.description}
+                  </p>
+                </div>
               </div>
             </motion.div>
           ))}
-
         </div>
 
         <motion.div

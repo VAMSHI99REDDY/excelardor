@@ -149,22 +149,26 @@ export default function ServicesPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.05, ease: "easeOut" }}
-                className="group flex flex-col h-full bg-transparent p-6 md:p-8 transition-colors duration-500 hover:bg-[#dfdbd4] cursor-pointer"
+                className={`group flex flex-col h-full bg-transparent p-6 md:p-8 transition-colors duration-500 hover:bg-[#dfdbd4] cursor-pointer ${index === 10 ? "md:col-span-2 lg:col-span-2" : ""}`}
               >
-                {/* Icon */}
-                <div className="mb-8 text-black/50 group-hover:text-blue-600 transition-colors duration-500">
-                  {service.icon}
+                <div className={`flex h-full ${index === 10 ? "flex-col md:flex-row md:items-center md:gap-8" : "flex-col"}`}>
+                  {/* Icon */}
+                  <div className={`${index === 10 ? "mb-4 md:mb-0 md:flex-shrink-0" : "mb-8"} text-black/50 group-hover:text-blue-600 transition-colors duration-500`}>
+                    {service.icon}
+                  </div>
+
+                  <div className={`flex flex-col ${index === 10 ? "md:flex-row md:items-center md:gap-8 md:flex-grow" : "h-full"}`}>
+                    {/* Title */}
+                    <h3 className={`text-xl md:text-2xl font-bold text-black mb-4 leading-tight ${index === 10 ? "md:mb-0 md:min-w-[280px]" : ""}`}>
+                      {service.title}
+                    </h3>
+
+                    {/* Description */}
+                    <p className="text-black/60 font-medium text-[14px] md:text-[15px] leading-relaxed mb-4 md:mb-0 flex-grow">
+                      {service.description}
+                    </p>
+                  </div>
                 </div>
-
-                {/* Title */}
-                <h3 className="text-xl md:text-2xl font-bold text-black mb-4 leading-tight">
-                  {service.title}
-                </h3>
-
-                {/* Description */}
-                <p className="text-black/60 font-medium text-[14px] md:text-[15px] leading-relaxed mb-4 flex-grow">
-                  {service.description}
-                </p>
               </motion.div>
             ))}
           </div>
