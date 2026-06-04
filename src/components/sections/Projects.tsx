@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import Link from "next/link";
-import { motion, useMotionValue, animate } from "framer-motion";
+import { motion, useMotionValue, animate, useInView } from "framer-motion";
 import { ArrowLeft, ArrowRight, ArrowUpRight, ZoomIn } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { PROJECTS } from "@/data/projectsData";
 import ImageLightbox from "@/components/ui/ImageLightbox";
 import type { Project } from "@/data/projectsData";
@@ -12,28 +12,53 @@ const Projects = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [trackWidth, setTrackWidth] = useState(0);
   const pauseTimerRef = useRef<NodeJS.Timeout | null>(null);
-  
+  const router = useRouter();
+
+  const containerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
+  const isInView = useInView(containerRef, { amount: 0.05 });
 
   // Combine all relevant project data into one unified dataset
-  const projects = PROJECTS.filter(p => 
+  const projects = PROJECTS.filter(p =>
     ["Telescopic Mast", "Industrial Hydraulics & SPM", "Aerospace and Defence Components", "3D Modeling of Products"].includes(p.category)
   );
   const repeated = [...projects, ...projects, ...projects, ...projects];
-  const doubled = [...repeated, ...repeated]; 
+  const doubled = [...repeated, ...repeated];
 
+  // Calculate track width for drag constraints & loop boundaries to avoid layout thrashing
   useEffect(() => {
+    if (projects.length === 0) return;
+    const updateWidth = () => {
+      if (trackRef.current) {
+        setTrackWidth(trackRef.current.scrollWidth / 2);
+      }
+    };
+    updateWidth();
+    // Dynamic delay to let layout render fully
+    const timer = setTimeout(updateWidth, 1000);
+    window.addEventListener("resize", updateWidth);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", updateWidth);
+    };
+  }, [projects.length]);
+
+  // Sub-pixel smooth auto-scroll loop (pauses when off-screen)
+  useEffect(() => {
+    if (projects.length === 0 || !isInView) return;
+
     let frameId: number;
-    const speed = window.innerWidth < 768 ? 0.7 : 1.0; 
+    const speed = window.innerWidth < 768 ? 0.7 : 1.0;
 
     const step = () => {
       if (trackRef.current && !isPaused) {
-        const trackWidth = trackRef.current.scrollWidth / 2;
+        const currentWidth = trackWidth || (trackRef.current.scrollWidth / 2);
         let currentX = x.get() - speed;
-        if (Math.abs(currentX) >= trackWidth) {
-           currentX = 0;
+        if (Math.abs(currentX) >= currentWidth) {
+          currentX = 0;
         }
         x.set(currentX);
       }
@@ -42,23 +67,23 @@ const Projects = () => {
 
     frameId = requestAnimationFrame(step);
     return () => cancelAnimationFrame(frameId);
-  }, [isPaused, x]);
+  }, [isPaused, x, isInView, trackWidth, projects.length]);
 
   const handleManualScroll = (direction: 'left' | 'right') => {
     setIsPaused(true);
     if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current);
 
     const amount = window.innerWidth > 768 ? 400 : 280;
-    const trackWidth = trackRef.current ? trackRef.current.scrollWidth / 2 : 10000;
-    
+    const currentWidth = trackWidth || (trackRef.current ? trackRef.current.scrollWidth / 2 : 10000);
+
     let targetX = x.get() + (direction === 'left' ? amount : -amount);
-    
-    if (targetX > 0) targetX = -trackWidth + amount; 
-    if (targetX < -trackWidth) targetX = 0;
+
+    if (targetX > 0) targetX = -currentWidth + amount;
+    if (targetX < -currentWidth) targetX = 0;
 
     animate(x, targetX, { type: 'spring', stiffness: 150, damping: 25 });
 
-    pauseTimerRef.current = setTimeout(() => setIsPaused(false), 5000); 
+    pauseTimerRef.current = setTimeout(() => setIsPaused(false), 5000);
   };
 
   const handleDragStart = () => setIsPaused(true);
@@ -69,6 +94,7 @@ const Projects = () => {
 
   return (
     <section
+      ref={containerRef}
       id="projects"
       className="py-6 md:py-10 relative overflow-hidden bg-[#F2EDE7] touch-pan-y"
     >
@@ -90,13 +116,17 @@ const Projects = () => {
       </div>
 
       {/* UNIFIED CAROUSEL */}
-      <div 
+      <div
         className="w-full overflow-hidden py-4 md:py-8 relative group"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
+        onMouseEnter={() => {
+          if (window.innerWidth >= 768) setIsPaused(true);
+        }}
+        onMouseLeave={() => {
+          if (window.innerWidth >= 768) setIsPaused(false);
+        }}
       >
         {/* Floating Arrows */}
-        <button 
+        <button
           onClick={() => handleManualScroll('left')}
           className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-30 bg-black/80 hover:bg-black text-white rounded-full p-3 md:p-4 shadow-xl transition-all active:scale-95 cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 flex items-center justify-center"
           aria-label="Scroll backward"
@@ -104,7 +134,7 @@ const Projects = () => {
           <ArrowLeft size={20} />
         </button>
 
-        <button 
+        <button
           onClick={() => handleManualScroll('right')}
           className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-30 bg-black/80 hover:bg-black text-white rounded-full p-3 md:p-4 shadow-xl transition-all active:scale-95 cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 flex items-center justify-center"
           aria-label="Scroll forward"
@@ -115,6 +145,7 @@ const Projects = () => {
         <motion.div
           ref={trackRef}
           drag="x"
+          dragConstraints={{ left: -trackWidth, right: 0 }}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
           style={{ x }}
@@ -122,10 +153,16 @@ const Projects = () => {
         >
           {doubled.map((project, idx) => (
             <div key={`${project.id}-${idx}`} className="w-[75vw] sm:w-[280px] md:w-[320px] shrink-0 pt-2 pb-6">
-              <div className="bg-white rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 flex flex-col h-[380px] md:h-[420px] border border-black/5 group/card cursor-pointer">
-                <div 
+              <motion.div
+                onTap={() => {
+                  router.push(`/projects#project-${project.id}`);
+                }}
+                className="bg-white rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 flex flex-col h-[380px] md:h-[420px] border border-black/5 group/card cursor-pointer"
+              >
+                <motion.div
                   className="h-[55%] md:h-[60%] w-full overflow-hidden relative bg-white"
-                  onClick={() => {
+                  onTap={(e) => {
+                    e.stopPropagation();
                     setSelectedProject(project);
                     setIsLightboxOpen(true);
                   }}
@@ -140,8 +177,8 @@ const Projects = () => {
                       <ZoomIn size={20} />
                     </div>
                   </div>
-                </div>
-                <Link href={`/projects#project-${project.id}`} className="p-5 md:p-6 flex flex-col flex-1">
+                </motion.div>
+                <div className="p-5 md:p-6 flex flex-col flex-1">
                   <div className="flex justify-between items-start mb-2 gap-2">
                     <h3 className="text-base md:text-lg font-bold text-black tracking-tight leading-tight line-clamp-1 max-w-[55%] flex-shrink-0">
                       {project.title.split("-")[0].trim()}
@@ -158,15 +195,15 @@ const Projects = () => {
                       <ArrowUpRight size={14} />
                     </div>
                   </div>
-                </Link>
-              </div>
+                </div>
+              </motion.div>
             </div>
           ))}
         </motion.div>
       </div>
 
       {isLightboxOpen && (
-        <ImageLightbox 
+        <ImageLightbox
           images={projects.map(p => ({ src: p.img, alt: p.title }))}
           currentIndex={projects.findIndex(p => p.id === selectedProject?.id)}
           isOpen={isLightboxOpen}
@@ -175,10 +212,11 @@ const Projects = () => {
         />
       )}
 
-
-
       <div className="container mx-auto px-6 md:px-12 flex justify-end mt-4">
-        <Link href="/projects" className="flex items-center gap-3 text-black font-bold hover:text-blue-600 transition-all group/viewall p-2 active:scale-95 rounded-xl">
+        <motion.button
+          onTap={() => router.push("/projects")}
+          className="flex items-center gap-3 text-black font-bold hover:text-blue-600 transition-all group/viewall p-2 active:scale-95 rounded-xl cursor-pointer"
+        >
           <span className="text-xs uppercase tracking-[0.2em] relative">
             View All
             <span className="absolute -bottom-1 w-0 h-[2px] bg-blue-600 transition-all duration-300 group-hover/viewall:w-full" />
@@ -186,7 +224,7 @@ const Projects = () => {
           <div className="w-10 h-10 rounded-full border border-black/10 flex items-center justify-center group-hover/viewall:bg-blue-600 group-hover/viewall:border-blue-600 transition-all duration-300 group-active/viewall:scale-90">
             <ArrowUpRight size={16} className="transition-transform group-hover/viewall:translate-x-0.5 group-hover/viewall:-translate-y-0.5 group-hover/viewall:text-white" />
           </div>
-        </Link>
+        </motion.button>
       </div>
 
     </section>

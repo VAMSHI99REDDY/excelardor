@@ -2,7 +2,7 @@
 
 import React from "react";
 import Footer from "@/components/layout/Footer";
-import { Hammer, Settings, Layers, Zap, Cog, ShieldCheck, Factory, Box, ArrowRight } from "lucide-react";
+import { Hammer, Settings, Layers, Zap, Cog, ShieldCheck, Factory, Box } from "lucide-react";
 import { motion } from "framer-motion";
 
 const services = [

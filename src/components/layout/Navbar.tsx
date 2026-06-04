@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, ArrowRight } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
@@ -16,13 +16,36 @@ const Navbar = () => {
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 80);
     if (isHomePage) {
-      setIsScrolled(window.scrollY > 80); // Set initial state
+      const timer = setTimeout(() => {
+        setIsScrolled(window.scrollY > 80); // Set initial state
+      }, 0);
       window.addEventListener("scroll", handleScroll);
-      return () => window.removeEventListener("scroll", handleScroll);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener("scroll", handleScroll);
+      };
     } else {
-      setIsScrolled(true);
+      const timer = setTimeout(() => {
+        setIsScrolled(true);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [isHomePage]);
+
+  // Prevent page scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isMobileMenuOpen]);
 
   // UPDATED NAV LINKS ORDER: 
   // Home -> Projects -> Services -> About Us
@@ -38,16 +61,18 @@ const Navbar = () => {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 w-full transition-all duration-500 ease-in-out ${
-        isScrolled 
-          ? "py-3 md:py-4 bg-black/95 backdrop-blur-xl border-b border-white/5 shadow-[0_10px_40px_rgba(0,0,0,0.5)]" 
-          : "py-6 md:py-8 bg-transparent"
+        isMobileMenuOpen
+          ? "h-screen bg-black/98 py-6 md:py-8"
+          : isScrolled
+            ? "py-3 md:py-4 bg-black/95 backdrop-blur-xl border-b border-white/5 shadow-[0_10px_40px_rgba(0,0,0,0.5)]"
+            : "py-6 md:py-8 bg-transparent"
       }`}
-      style={{ 
+      style={{
         zIndex: 2147483647,
       }}
     >
-      <div className="w-full px-6 md:px-12 flex justify-between items-center max-w-[1920px] mx-auto">
-        <Link href="/" className="flex items-center gap-3 relative z-10 group shrink-0">
+      <div className="w-full px-6 md:px-12 flex justify-between items-center max-w-[1920px] mx-auto relative z-50">
+        <Link href="/" className="flex items-center gap-3 relative z-10 group shrink-0" onClick={() => setIsMobileMenuOpen(false)}>
           <div className="w-10 h-10 md:w-14 md:h-14 flex items-center justify-center group-hover:rotate-6 transition-all duration-500">
             <Image
               src="/Logo/Untitled design logo.png"
@@ -95,7 +120,7 @@ const Navbar = () => {
 
         {/* Mobile Toggle */}
         <button
-          className="lg:hidden p-3 text-white relative z-20 bg-white/5 rounded-xl border border-white/10 active:scale-90 transition-all hover:bg-white/10"
+          className="lg:hidden p-3 text-white relative z-50 bg-white/5 rounded-xl border border-white/10 active:scale-90 transition-all hover:bg-white/10"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           aria-label="Toggle Menu"
         >
@@ -107,23 +132,24 @@ const Navbar = () => {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="lg:hidden fixed inset-0 top-0 bg-black/98 backdrop-blur-3xl z-[2147483647] overflow-y-auto"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="lg:hidden absolute inset-0 bg-black/95 backdrop-blur-2xl z-40 overflow-y-auto flex flex-col justify-center items-center"
           >
-            <div className="flex flex-col gap-6 p-10 min-h-screen justify-center items-center">
+            <div className="flex flex-col gap-8 p-10 pt-32 pb-16 w-full max-w-lg items-center text-center">
               {navLinks.map((link, idx) => (
                 <motion.div
                   key={link.name}
-                  initial={{ opacity: 0, x: -30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.1 }}
-                  className="w-full text-center"
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ delay: idx * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  className="w-full"
                 >
                   <Link
                     href={link.href}
-                    className="block text-4xl md:text-5xl font-black text-white/40 hover:text-white transition-all uppercase tracking-tighter"
+                    className="block text-4xl md:text-5xl font-black text-white/40 hover:text-white transition-all uppercase tracking-tighter py-3 active:scale-95"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {link.name}
@@ -131,27 +157,21 @@ const Navbar = () => {
                 </motion.div>
               ))}
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="pt-12 mt-12 border-t border-white/10 w-full flex justify-center"
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ delay: 0.4, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className="pt-10 mt-6 border-t border-white/10 w-full flex justify-center"
               >
                 <Link
                   href="/contact"
-                  className="px-12 py-6 rounded-2xl text-[18px] font-black uppercase tracking-[0.2em] bg-white text-black text-center shadow-2xl active:scale-95 hover:bg-blue-600 hover:text-white transition-all"
+                  className="px-12 py-5 rounded-2xl text-[16px] font-black uppercase tracking-[0.2em] bg-white text-black text-center shadow-2xl active:scale-95 hover:bg-blue-600 hover:text-white transition-all"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Contact us
                 </Link>
               </motion.div>
             </div>
-            {/* Mobile Close Button */}
-            <button 
-              className="absolute top-8 right-8 p-4 text-white hover:rotate-90 transition-transform duration-300"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <X size={36} />
-            </button>
           </motion.div>
         )}
       </AnimatePresence>

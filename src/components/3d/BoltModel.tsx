@@ -203,10 +203,10 @@ export default function BoltModel() {
     nutGroup.position.set(-1.5, -1.2, 0.3);
 
     // Camera
-    let sph = { theta: -0.45, phi: 0.78, r: isMobile ? 15 : 12 };
-    let tgt = new THREE.Vector3(0, 0, 0);
+    const sph = { theta: -0.45, phi: 0.78, r: isMobile ? 15 : 12 };
+    const tgt = new THREE.Vector3(0, 0, 0);
     // Smooth interaction target variables
-    let targetSph = { theta: -0.45, phi: 0.78, r: isMobile ? 15 : 12 };
+    const targetSph = { theta: -0.45, phi: 0.78, r: isMobile ? 15 : 12 };
 
     function applyCamera() {
       camera.position.set(
@@ -220,7 +220,7 @@ export default function BoltModel() {
 
     // Controls
     let drag = false, prev = { x: 0, y: 0 }, autoRot = true;
-    let autoRotSpeed = 0.008;
+    const autoRotSpeed = 0.008;
 
     const startAction = (x: number, y: number) => {
       drag = true;

@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "ocr-images.js",
+    "push_to_github.js",
   ]),
 ]);
 

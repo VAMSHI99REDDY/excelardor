@@ -38,7 +38,7 @@ export default function QualityPolicyPage() {
               
               <div className="relative z-10 space-y-8">
                 <div className="text-2xl md:text-3xl font-bold leading-relaxed text-black/80 italic">
-                  "We are committed to enhance customer satisfaction and achieve sustainable growth through:"
+                  &ldquo;We are committed to enhance customer satisfaction and achieve sustainable growth through:&rdquo;
                 </div>
 
                 <div className="grid gap-6">

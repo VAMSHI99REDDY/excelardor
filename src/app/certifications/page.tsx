@@ -3,7 +3,7 @@
 import Footer from "@/components/layout/Footer";
 
 import { motion } from "framer-motion";
-import { FileBadge, Download, Maximize2 } from "lucide-react";
+import { FileBadge } from "lucide-react";
 import Image from "next/image";
 
 const CERTIFICATES = [

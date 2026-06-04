@@ -2,8 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import Link from "next/link";
-import { motion, AnimatePresence, useAnimation, useMotionValue, animate } from "framer-motion";
+import { motion, useMotionValue, animate, useInView } from "framer-motion";
 import { Grid3X3, LayoutGrid, Search, ArrowLeft, ArrowRight } from "lucide-react";
 import { PROJECTS } from "@/data/projectsData";
 import ProjectCard from "@/components/ui/ProjectCard";
@@ -13,22 +12,36 @@ import Footer from "@/components/layout/Footer";
 import type { Project } from "@/data/projectsData";
 
 const CategoryRow = ({ title, projects }: { title: string, projects: Project[] }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
   const pauseTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  if (projects.length === 0) return null;
-
-  // Guarantee enough items to span ultra-wide screens twice.
-  const copiesNeeded = Math.max(4, Math.ceil(15 / projects.length));
-  const repeated = Array(copiesNeeded).fill(projects).flat();
-  const doubled = [...repeated, ...repeated];
-
+  const rowRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(rowRef, { amount: 0.05 });
+  const [trackWidth, setTrackWidth] = useState(0);
   const x = useMotionValue(0);
+
+  // Calculate track width for drag constraints
+  useEffect(() => {
+    if (projects.length === 0) return;
+    const updateWidth = () => {
+      if (trackRef.current) {
+        setTrackWidth(trackRef.current.scrollWidth / 2);
+      }
+    };
+    updateWidth();
+    // Dynamic delay to let layout render fully
+    const timer = setTimeout(updateWidth, 1000);
+    window.addEventListener("resize", updateWidth);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", updateWidth);
+    };
+  }, [projects.length]);
 
   // Sub-pixel smooth auto-scroll loop
   useEffect(() => {
+    if (projects.length === 0 || !isInView) return;
+
     let frameId: number;
     // Mid speed: 1.0 on desktop (60px/s), 0.7 on mobile (42px/s)
     const speed = window.innerWidth < 768 ? 0.7 : 1.0;
@@ -36,34 +49,44 @@ const CategoryRow = ({ title, projects }: { title: string, projects: Project[] }
     const step = () => {
       if (trackRef.current && !isPaused) {
         // We use scrollWidth / 2 because the items are perfectly duplicated
-        const trackWidth = trackRef.current.scrollWidth / 2;
-        let currentX = x.get() - speed;
+        const currentWidth = trackRef.current.scrollWidth / 2;
+        if (currentWidth > 0) {
+          let currentX = x.get() - speed;
 
-        // Seamless infinite loop reset
-        if (Math.abs(currentX) >= trackWidth) {
-          currentX = 0;
+          // Seamless infinite loop reset
+          if (Math.abs(currentX) >= currentWidth) {
+            currentX = 0;
+          }
+          x.set(currentX);
         }
-        x.set(currentX);
       }
       frameId = requestAnimationFrame(step);
     };
 
     frameId = requestAnimationFrame(step);
     return () => cancelAnimationFrame(frameId);
-  }, [isPaused, x]);
+  }, [isPaused, x, isInView, projects.length]);
+
+  // Early return placed after all hooks to prevent rules-of-hooks violation
+  if (projects.length === 0) return null;
+
+  // Guarantee enough items to span ultra-wide screens twice.
+  const copiesNeeded = Math.max(4, Math.ceil(15 / projects.length));
+  const repeated = Array(copiesNeeded).fill(projects).flat();
+  const doubled = [...repeated, ...repeated];
 
   const handleManualScroll = (direction: 'left' | 'right') => {
     setIsPaused(true);
     if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current);
 
     const amount = window.innerWidth > 768 ? 400 : 280;
-    const trackWidth = trackRef.current ? trackRef.current.scrollWidth / 2 : 10000;
+    const currentWidth = trackWidth || (trackRef.current ? trackRef.current.scrollWidth / 2 : 10000);
 
     let targetX = x.get() + (direction === 'left' ? amount : -amount);
 
     // Simple clamping to prevent scrolling past the duplicated ends
-    if (targetX > 0) targetX = -trackWidth + amount;
-    if (targetX < -trackWidth) targetX = 0;
+    if (targetX > 0) targetX = -currentWidth + amount;
+    if (targetX < -currentWidth) targetX = 0;
 
     animate(x, targetX, { type: 'spring', stiffness: 150, damping: 25 });
 
@@ -80,7 +103,7 @@ const CategoryRow = ({ title, projects }: { title: string, projects: Project[] }
   };
 
   return (
-    <div className="w-full flex flex-col mb-8 md:mb-16 relative overflow-hidden group/row">
+    <div ref={rowRef} className="w-full flex flex-col mb-8 md:mb-16 relative overflow-hidden group/row">
       <div className="flex items-end justify-between px-4 md:px-12 mb-6 md:mb-8 relative z-10">
         <div>
           <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tight text-black">{title}</h2>
@@ -108,13 +131,18 @@ const CategoryRow = ({ title, projects }: { title: string, projects: Project[] }
       {/* Auto-scroll Framer Motion Container */}
       <div
         className="w-full overflow-hidden"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
+        onMouseEnter={() => {
+          if (window.innerWidth >= 768) setIsPaused(true);
+        }}
+        onMouseLeave={() => {
+          if (window.innerWidth >= 768) setIsPaused(false);
+        }}
       >
         <motion.div
           ref={trackRef}
           style={{ x }}
           drag="x"
+          dragConstraints={{ left: -trackWidth, right: 0 }}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
           className="flex gap-4 md:gap-8 px-4 md:px-12 pb-8 w-max cursor-grab active:cursor-grabbing touch-pan-y"
@@ -150,18 +178,26 @@ const ProjectsPage = () => {
   }, [activeCategory]);
 
   useEffect(() => {
-    const hash = window.location.hash;
+    const hash = typeof window !== "undefined" ? window.location.hash : "";
     if (hash) {
       const id = hash.replace("#", "");
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         const element = document.getElementById(id);
         if (element) {
-          const headerOffset = 150;
-          const elementPosition = element.getBoundingClientRect().top;
-          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-          window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+          try {
+            const headerOffset = 150;
+            const elementPosition = element.getBoundingClientRect().top;
+            const scrollY = window.scrollY !== undefined ? window.scrollY : (window.pageYOffset !== undefined ? window.pageYOffset : 0);
+            const offsetPosition = elementPosition + scrollY - headerOffset;
+            if (!isNaN(offsetPosition)) {
+              window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+            }
+          } catch (err) {
+            console.error("Scroll to hash failed:", err);
+          }
         }
       }, 500);
+      return () => clearTimeout(timer);
     }
   }, []);
 

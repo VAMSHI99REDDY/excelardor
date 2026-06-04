@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ImageLightboxProps {
   images: { src: string; alt: string }[];
@@ -18,7 +17,11 @@ const ImageLightbox = ({ images, currentIndex, isOpen, onClose, onNavigate }: Im
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     if (isOpen) {
       // Robust scroll lock for both desktop and mobile
       const originalStyle = window.getComputedStyle(document.body).overflow;

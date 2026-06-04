@@ -57,7 +57,7 @@ export default function Home() {
           preload="metadata"
           className="absolute inset-0 w-full h-full object-cover opacity-80"
         >
-          <source src="/hero.mp4" type="video/mp4" />
+          <source src="/backgroundvideo.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-black/30" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(37,99,235,0.15)_0%,transparent_70%)]" />

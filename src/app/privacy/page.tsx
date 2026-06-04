@@ -38,7 +38,7 @@ export default function PrivacyPolicyPage() {
               
               <div className="relative z-10 space-y-8">
                 <div className="text-2xl md:text-3xl font-bold leading-relaxed text-black/80 italic">
-                  "Your privacy is a priority. We take every measure to ensure your personal data remains secure and confidential."
+                  &ldquo;Your privacy is a priority. We take every measure to ensure your personal data remains secure and confidential.&rdquo;
                 </div>
 
                 <div className="grid gap-6">

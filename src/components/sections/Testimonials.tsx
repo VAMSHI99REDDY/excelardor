@@ -6,58 +6,46 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const TEAM = [
   {
-    name: "N Vijay Kumar",
-    role: "Founder, Managing Director",
-    quote: "N. Vijay Kumar is the Founder and Director. Experience over 20 years in the areas of Hydraulics, SPMs and Telescopic Masts. Granted a Patent by Govt. of India for : INTERNAL HYDRAULIC TELESCOPIC MAST.",
-    avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=200",
+    name: "N. Vijay Kumar",
+    role: "Founder & Managing Director",
+    quote: "Founder & Managing Director with over 20 years of experience in hydraulics, telescopic masts, and precision engineering, driving innovation and strategic growth.",
+    avatar: "/peopleimg/Mr. N. Vijay Kumar.png",
   },
   {
-    name: "C.Praveen Chandra",
-    role: "Director (Strategy & Business Development)",
-    quote: "Post graduate in Metallurgy from IISc, Bengaluru. Worked for Tata Steel, flagship of Tata Group. Experience of nearly 20 years of strategy and business development. Widely travelled abroad.",
-    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200",
+    name: "Commodore Praveen Chandra",
+    role: "Director & Strategic Advisor",
+    quote: "Strategic Advisor with extensive defence technology expertise, guiding corporate strategy and advanced engineering solutions.",
+    avatar: "/peopleimg/Commodore Praveen Chandra.png",
   },
   {
-    name: "SR Murthy",
-    role: "Head-Business Excellence",
-    quote: "He has over 30 years of Experience in the field of Mechanical Engineering. He is associated with Excel Ardor Pvt. Ltd., since its inception. Over the last 15 years, he has been associated with leading industries in India.",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200",
-  },
-  {
-    name: "S.R. Oruganti",
-    role: "Head-SCM",
-    quote: "Graduate in Mechanical Engineering. MBA from XLRI. Nearly 30 years of industry experience.",
-    avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=200",
-  },
-  {
-    name: "Ch Sudheer",
-    role: "Design Engineer (Mechanical)",
-    quote: "Mechanical Engineering Graduate. Having 5 Years of Experience in Designing of Masts & SPMs and Production Management.",
+    name: "M. R. Krishnamraju",
+    role: "Director",
+    quote: "Director focusing on corporate governance, strategic expansion, and long-term business partnerships.",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200",
   },
   {
-    name: "P Prasad",
-    role: "Technical Consultant (Mechanical)",
-    quote: "Holds Masters in Mechanical engineering. Having experience of 30years in the field of designing, Manufacturing, Planning, Quality and Troubleshooting.",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200",
+    name: "Ch. Sudheer",
+    role: "Design Engineer – Mechanical",
+    quote: "Mechanical Design Engineer with 5 years of experience in mast and SPM design and production management.",
+    avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=200",
   },
   {
-    name: "N Rajasekhar",
-    role: "Engineer (Mechanical)",
-    quote: "Diploma Graduate. Having 12 Year of Experience in the field of Fitter and Supervising the workshop.",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200",
+    name: "P. Prasad",
+    role: "Technical Consultant – Mechanical",
+    quote: "Technical Consultant with 30 years of expertise in design, manufacturing, planning, quality, and troubleshooting.",
+    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200",
   },
   {
-    name: "Rajesh",
-    role: "QA",
-    quote: "Mechanical Engineering Graduate. Having 3 Years of Experience in Design and QA of Engineering Precision Components, Telescopic Masts.",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200",
+    name: "N. Rajasekhar",
+    role: "Engineer – Mechanical",
+    quote: "Mechanical Engineer with 12 years of workshop experience, specializing in fitting and supervision.",
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200",
   },
   {
     name: "Sunny",
     role: "Designer",
-    quote: "Mechanical Engineering Graduate. Having 3 Years of Experience in Designing of Engineering Precision Components.",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200",
+    quote: "Designer with 3 years of experience in precision component design and engineering.",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200",
   },
 ];
 
@@ -79,7 +67,7 @@ const machineryList = [
   { id: 16, name: "2\" Hand Grinding Machine", qty: 3 },
   { id: 17, name: "Compressor with accessories", qty: 3 },
   { id: 18, name: "Hydraulic Test Rig 450 BAR", qty: 1 },
-  { id: 19, name: "Hydraulic Bending Machine", qty: 1 }, ,
+  { id: 19, name: "Hydraulic Bending Machine", qty: 1 },
   { id: 22, name: "Gas Cutting Unit", qty: 1 },
 ];
 
@@ -112,7 +100,7 @@ export default function Testimonials() {
     setExpandedCategory(expandedCategory === category ? null : category);
   };
 
-  const renderTable = (items: any[], title?: string) => (
+  const renderTable = (items: { id: number; name: string; qty: number }[], title?: string) => (
     <div className="w-full mt-8 flex flex-col">
       {/* Main Table Heading */}
       {title && (
@@ -159,11 +147,11 @@ export default function Testimonials() {
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 gap-8 w-full">
           <div>
             <span className="text-blue-600 font-bold text-[11px] md:text-[13px] tracking-[0.25em] uppercase mb-4 inline-block">
-              Our Leadership
+              Our Leadership – The Minds Behind The Machinery
             </span>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-black leading-[1.1]">
-              The Minds Behind<br />
-              <span className="text-black/40 italic font-light tracking-tighter">The Machinery</span>
+              Leadership Excellence<br />
+              <span className="text-black/40 italic font-light tracking-tighter">Driving Innovation in Aerospace & Defence</span>
             </h2>
             <p className="text-black/60 font-medium mt-6 text-[15px] md:text-[17px] max-w-2xl leading-relaxed">
               Decades of specialized mastery in hydraulics, metallurgy, and strategic operations powering Indian defense.
@@ -232,7 +220,7 @@ export default function Testimonials() {
                     <div className="relative mb-10">
                       <Quote size={32} className="text-black/5 absolute -top-4 -left-2 rotate-180" />
                       <p className="text-black/70 text-[15px] font-medium italic leading-relaxed relative z-10">
-                        "{member.quote}"
+                        &ldquo;{member.quote}&rdquo;
                       </p>
                     </div>
 

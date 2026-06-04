@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { Hammer, Settings, Layers, Zap, Cog, ShieldCheck, Factory, Box, ArrowRight } from "lucide-react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { Hammer, Settings, Layers, Zap, Cog, ShieldCheck, Factory, Box } from "lucide-react";
+import { motion } from "framer-motion";
 import { useRef } from "react";
 
 const services = [
@@ -149,7 +149,7 @@ const Services = () => {
             >
               <div className={`relative z-10 flex h-full ${index === 10 ? "flex-col xl:flex-row xl:items-center xl:gap-8" : "flex-col"}`}>
                 <div className={`${index === 10 ? "mb-4 xl:mb-0 xl:flex-shrink-0" : "mb-8"} text-black/40 group-hover:text-blue-600 transition-colors duration-500`}>
-                  {React.cloneElement(service.icon as React.ReactElement<any>, { size: index === 10 ? 24 : 20 })}
+                  {React.cloneElement(service.icon as React.ReactElement<{ size?: number }>, { size: index === 10 ? 24 : 20 })}
                 </div>
                 
                 <div className={`flex flex-col ${index === 10 ? "xl:flex-row xl:items-center xl:gap-8 xl:flex-grow" : "h-full"}`}>

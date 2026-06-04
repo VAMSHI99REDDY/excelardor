@@ -75,7 +75,7 @@ const About = () => {
               <strong className="text-black font-semibold">Excel Ardor Pvt. Ltd.</strong>, established in 2014 and headquartered in Hyderabad, is a leading engineering and manufacturing company specializing in advanced hydraulic systems, precision mechanical components, and mission-critical engineering solutions. Serving the defence, aerospace, and industrial sectors, the company is committed to delivering innovative, high-performance products engineered to meet the most demanding operational requirements.
             </p>
             <p>
-              With a strong focus on quality, reliability, and technological excellence, Excel Ardor combines advanced manufacturing capabilities with deep engineering expertise to develop customized solutions for complex applications. Driven by innovation and precision, the company continues to support India's growing aerospace, defence, and industrial ecosystem through world-class engineering and indigenous manufacturing excellence.
+              With a strong focus on quality, reliability, and technological excellence, Excel Ardor combines advanced manufacturing capabilities with deep engineering expertise to develop customized solutions for complex applications. Driven by innovation and precision, the company continues to support India&apos;s growing aerospace, defence, and industrial ecosystem through world-class engineering and indigenous manufacturing excellence.
             </p>
           </motion.div>
         </div>
@@ -126,7 +126,7 @@ const About = () => {
                     He founded <strong className="text-black font-semibold">Excel Hydraulics & Equipments</strong> in 2010 and successfully developed and patented an <strong className="text-black font-semibold">Internal Hydraulic Telescopic Mast System</strong>, demonstrating his commitment to innovation and indigenous technology development. In 2014, he established <strong className="text-black font-semibold">Excel Ardor Pvt. Ltd.</strong> to focus on advanced <strong className="text-black font-semibold">Telescopic Mast Systems, Defence Components, Aerospace Precision Components, and Precision Engineering Solutions</strong>.
                   </p>
                   <p>
-                    Under his leadership, the company continues to drive excellence in defence, aerospace, hydraulics, and advanced manufacturing, supporting India's growing industrial and strategic sectors.
+                    Under his leadership, the company continues to drive excellence in defence, aerospace, hydraulics, and advanced manufacturing, supporting India&apos;s growing industrial and strategic sectors.
                   </p>
                 </div>
               </div>

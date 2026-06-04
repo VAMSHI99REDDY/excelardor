@@ -41,15 +41,19 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
       const target = e.target as HTMLElement;
       const anchor = target.closest("a");
 
-      if (anchor && anchor.hash && anchor.origin === window.location.origin) {
-        const targetElement = document.querySelector(anchor.hash);
-        if (targetElement) {
-          e.preventDefault();
-          lenis.scrollTo(targetElement as HTMLElement, { 
-            offset: 0, 
-            duration: 1.6,
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
-          });
+      if (anchor && anchor.hash && anchor.hash.length > 1 && anchor.origin === window.location.origin) {
+        try {
+          const targetElement = document.querySelector(anchor.hash);
+          if (targetElement) {
+            e.preventDefault();
+            lenis.scrollTo(targetElement as HTMLElement, { 
+              offset: 0, 
+              duration: 1.6,
+              easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
+            });
+          }
+        } catch (err) {
+          console.error("Invalid selector or scroll failed:", err);
         }
       }
     };

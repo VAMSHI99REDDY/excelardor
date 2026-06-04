@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { PROJECTS } from "@/data/projectsData";
 import ProjectDetail from "@/components/ui/ProjectDetail";
 import Footer from "@/components/layout/Footer";
@@ -23,9 +24,9 @@ export default async function ProjectPage({
       <div className="min-h-screen flex items-center justify-center bg-white text-black">
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-4">Project Not Found</h1>
-          <a href="/projects" className="text-blue-600 hover:underline">
+          <Link href="/projects" className="text-blue-600 hover:underline">
             Return to Projects
-          </a>
+          </Link>
         </div>
       </div>
     );

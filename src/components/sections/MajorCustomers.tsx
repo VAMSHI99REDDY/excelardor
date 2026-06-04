@@ -25,7 +25,7 @@ const allLogos = [
   { name: "BDL", src: "/logos/BDL.png" },
 ];
 
-const LogoTickerRow = ({ logos, speed, reverse = false }: { logos: any[], speed: number, reverse?: boolean }) => {
+const LogoTickerRow = ({ logos, speed, reverse = false }: { logos: { name: string; src: string }[], speed: number, reverse?: boolean }) => {
   return (
     <div className="flex w-max"
       style={{ 

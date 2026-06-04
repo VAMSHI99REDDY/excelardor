@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ChevronRight, Maximize2, ZoomIn } from "lucide-react";
+import { ArrowLeft, ChevronRight, ZoomIn } from "lucide-react";
 import Link from "next/link";
 import type { Project } from "@/data/projectsData";
 import ImageLightbox from "./ImageLightbox";
@@ -41,7 +41,7 @@ const ProjectDetail = ({ project }: ProjectDetailProps) => {
         <>
           <section className="relative w-full h-auto min-h-[100vh] md:h-[85vh] flex flex-col md:flex-row items-center border-b border-white/5 pt-20">
             {/* Left Side: Static Image */}
-            <div 
+            <div
               className="w-full md:w-[42%] h-[40vh] md:h-full relative overflow-hidden bg-zinc-950 flex items-center justify-center md:border-r border-b md:border-b-0 border-white/5 cursor-zoom-in group"
               onClick={(e) => {
                 e.preventDefault();
@@ -154,7 +154,7 @@ const ProjectDetail = ({ project }: ProjectDetailProps) => {
               <div className="w-full lg:w-1/2">
                 <div className="lg:sticky lg:top-32 space-y-12">
                   {/* Image Showcase with Grid */}
-                  <div 
+                  <div
                     className="relative w-full min-h-[300px] md:min-h-[400px] bg-white rounded-3xl overflow-hidden border border-black/5 group flex items-center justify-center cursor-zoom-in"
                     onClick={() => setIsLightboxOpen(true)}
                   >
@@ -276,7 +276,7 @@ const ProjectDetail = ({ project }: ProjectDetailProps) => {
           </div>
         </div>
       )}
-      <ImageLightbox 
+      <ImageLightbox
         images={project.gallery ? project.gallery.map(img => ({ src: img, alt: project.title })) : [{ src: project.img, alt: project.title }]}
         currentIndex={currentImageIndex}
         isOpen={isLightboxOpen}

@@ -3,7 +3,6 @@
 import React from "react";
 import Link from "next/link";
 import { Mail, Phone, MapPin, Linkedin, Twitter, Instagram, ArrowRight } from "lucide-react";
-import { motion } from "framer-motion";
 import Image from "next/image";
 
 const Footer = () => {

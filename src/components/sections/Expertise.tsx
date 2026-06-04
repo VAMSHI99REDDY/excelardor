@@ -12,12 +12,12 @@ const TelescopicMast = dynamic(() => import("@/components/3d/TelescopicMast"), {
 export default function Expertise() {
   return (
     <section className="w-full bg-[#F2EDE7] py-8 md:py-12 relative overflow-hidden">
-      
+
       <div className="container mx-auto px-6 md:px-12 relative z-10 flex flex-col w-full">
 
         {/* TOP CENTERED HEADING WRAPPER */}
         <div className="flex flex-col items-center text-center w-full mx-auto mb-6 md:mb-10">
-          
+
           <div className="pointer-events-auto flex flex-col items-center">
             {/* Our Expertise */}
             <motion.span
@@ -47,7 +47,7 @@ export default function Expertise() {
 
         {/* BOTTOM SECTION (Left: 3D Bolt, Right: List) */}
         <div className="flex flex-col md:flex-row items-center justify-between w-full gap-8">
-          
+
           {/* LEFT: 3D Telescopic Mast Model */}
           <div className="w-full md:w-1/2 flex justify-center relative h-[600px] md:h-[450px] order-2 md:order-1">
             <TelescopicMast />
@@ -80,7 +80,7 @@ export default function Expertise() {
         </div>
 
       </div>
-      
+
     </section>
   );
 }

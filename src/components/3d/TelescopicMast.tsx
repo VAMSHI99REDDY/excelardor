@@ -224,7 +224,14 @@ export default function TelescopicMast() {
     }
 
     // Dynamic Cables
-    const cables: any[] = [];
+    interface Cable {
+      mesh: THREE.Mesh<THREE.TubeGeometry, THREE.Material>;
+      points: THREE.Vector3[];
+      curve: THREE.CatmullRomCurve3;
+      offsetRot: number;
+      radius: number;
+    }
+    const cables: Cable[] = [];
     const createCable = (color: THREE.Material, radius: number, offsetRot: number) => {
       const points: THREE.Vector3[] = [];
       // Reduced cable segments for performance

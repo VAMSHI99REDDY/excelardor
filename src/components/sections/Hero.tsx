@@ -2,8 +2,8 @@
 
 import React from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronDown } from "lucide-react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Hero = () => {
   return (

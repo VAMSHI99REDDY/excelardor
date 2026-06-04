@@ -16,77 +16,83 @@ export default function Contact() {
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-            className="bg-white rounded-3xl p-8 md:p-12 shadow-[0_4px_30px_rgba(0,0,0,0.05)] w-full"
+            className="bg-white rounded-3xl p-6 sm:p-8 md:p-12 shadow-[0_4px_30px_rgba(0,0,0,0.05)] w-full"
           >
             <h3 className="text-2xl font-bold text-black mb-8 border-b border-black/10 pb-4">
               Contact Details
             </h3>
 
-            <div className="flex flex-col gap-8">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#BEBEB8] text-black flex items-center justify-center shrink-0">
-                  <MapPin size={24} strokeWidth={1.5} />
+            <div className="flex flex-col gap-6 sm:gap-8">
+              {/* Location */}
+              <div className="flex items-start gap-3 sm:gap-4 w-full">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#BEBEB8] text-black flex items-center justify-center shrink-0">
+                  <MapPin className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={1.5} />
                 </div>
-                <div>
-                  <span className="block font-semibold text-sm text-black/50 tracking-wider uppercase mb-1">
+                <div className="min-w-0 flex-1">
+                  <span className="block font-semibold text-[11px] sm:text-xs text-black/50 tracking-wider uppercase mb-1">
                     Location
                   </span>
-                  <p className="text-black font-medium text-lg w-full max-w-xs">
-                    D-165/A, Phase - 3,IDA Jeedimetla, Apurupa Colony, Suraram, Hyderabad, Telangana 500055
+                  <p className="text-black font-medium text-sm sm:text-base md:text-lg leading-relaxed break-words">
+                    D-165/A, Phase - 3, IDA Jeedimetla, Apurupa Colony, Suraram, Hyderabad, Telangana 500055
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#BEBEB8] text-black flex items-center justify-center shrink-0">
-                  <Phone size={24} strokeWidth={1.5} />
+              {/* Phone */}
+              <div className="flex items-start gap-3 sm:gap-4 w-full">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#BEBEB8] text-black flex items-center justify-center shrink-0">
+                  <Phone className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={1.5} />
                 </div>
-                <div>
-                  <span className="block font-semibold text-sm text-black/50 tracking-wider uppercase mb-1">
+                <div className="min-w-0 flex-1">
+                  <span className="block font-semibold text-[11px] sm:text-xs text-black/50 tracking-wider uppercase mb-1">
                     Phone
                   </span>
-                  <p className="text-black font-medium text-lg"> +91 9989166874    <br /> +91 4023800049
+                  <p className="text-black font-medium text-sm sm:text-base md:text-lg leading-relaxed break-words">
+                    +91 9989166874 <br /> +91 40 2380 0049
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#BEBEB8] text-black flex items-center justify-center shrink-0">
-                  <Mail size={24} strokeWidth={1.5} />
+              {/* Email */}
+              <div className="flex items-start gap-3 sm:gap-4 w-full">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#BEBEB8] text-black flex items-center justify-center shrink-0">
+                  <Mail className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={1.5} />
                 </div>
-                <div>
-                  <span className="block font-semibold text-sm text-black/50 tracking-wider uppercase mb-1">
+                <div className="min-w-0 flex-1">
+                  <span className="block font-semibold text-[11px] sm:text-xs text-black/50 tracking-wider uppercase mb-1">
                     Email
                   </span>
-                  <p className="text-black font-medium text-lg">
+                  <p className="text-black font-medium text-sm sm:text-base md:text-lg leading-relaxed break-all sm:break-words">
                     design.excelardor@gmail.com
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#BEBEB8] text-black flex items-center justify-center shrink-0">
-                  <Building size={24} strokeWidth={1.5} />
+              {/* Company */}
+              <div className="flex items-start gap-3 sm:gap-4 w-full">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#BEBEB8] text-black flex items-center justify-center shrink-0">
+                  <Building className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={1.5} />
                 </div>
-                <div>
-                  <span className="block font-semibold text-sm text-black/50 tracking-wider uppercase mb-1">
+                <div className="min-w-0 flex-1">
+                  <span className="block font-semibold text-[11px] sm:text-xs text-black/50 tracking-wider uppercase mb-1">
                     Company
                   </span>
-                  <p className="text-black font-medium text-lg">
+                  <p className="text-black font-medium text-sm sm:text-base md:text-lg leading-relaxed break-words">
                     Excel Ardor Pvt. Ltd.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#BEBEB8] text-black flex items-center justify-center shrink-0">
-                  <Clock size={24} strokeWidth={1.5} />
+              {/* Working Hours */}
+              <div className="flex items-start gap-3 sm:gap-4 w-full">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#BEBEB8] text-black flex items-center justify-center shrink-0">
+                  <Clock className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={1.5} />
                 </div>
-                <div>
-                  <span className="block font-semibold text-sm text-black/50 tracking-wider uppercase mb-1">
+                <div className="min-w-0 flex-1">
+                  <span className="block font-semibold text-[11px] sm:text-xs text-black/50 tracking-wider uppercase mb-1">
                     Working Hours
                   </span>
-                  <p className="text-black font-medium text-lg">
+                  <p className="text-black font-medium text-sm sm:text-base md:text-lg leading-relaxed break-words">
                     Mon–Sat, 9:00 AM – 6:00 PM
                   </p>
                 </div>
@@ -99,7 +105,7 @@ export default function Contact() {
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-            className="bg-white rounded-3xl p-8 md:p-12 shadow-[0_4px_30px_rgba(0,0,0,0.05)] w-full"
+            className="bg-white rounded-3xl p-6 sm:p-8 md:p-12 shadow-[0_4px_30px_rgba(0,0,0,0.05)] w-full"
           >
             <h3 className="text-2xl font-bold text-black mb-8 border-b border-black/10 pb-4">
               Send us a Message
