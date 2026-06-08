@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detailed Pneumatic Telescopic Mast CAD</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #ffffff;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    .ui-container {
+      position: absolute;
+      bottom: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      color: #333333;
+      pointer-events: none;
+      z-index: 10;
+      width: 100%;
+    }
+
+    .main-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 900;
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      background: linear-gradient(180deg, #333333 0%, #777777 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+      line-height: 1;
+    }
+
+    .sub-headings {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 15px;
+      font-family: 'Inter', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 400;
+      color: #666666;
+      text-transform: uppercase;
+      letter-spacing: 0.4em;
+      opacity: 0.8;
+    }
+
+    .sub-headings span {
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .sub-headings span::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      width: 0;
+      height: 2px;
+      background: #ffa200;
+      transition: all 0.3s ease;
+      transform: translateX(-50%);
+    }
+
+    .ui-container:hover .sub-headings span::after {
+      width: 20px;
+    }
+
+    .sub-headings .divider {
+      width: 1px;
+      height: 20px;
+      background: rgba(255,255,255,0.2);
+      align-self: center;
+    }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+
+<body>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+    // 1. Scene Setup
+    const scene = new THREE.Scene();
+    scene.background = null;
+
+    const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.5, 3000);
+    camera.position.set(600, 350, 800);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+    document.body.appendChild(renderer.domElement);
+
+    // High-end Environment Reflections
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    const roomEnv = new RoomEnvironment(renderer);
+    scene.environment = pmremGenerator.fromScene(roomEnv, 0.04).texture;
+    roomEnv.dispose();
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.target.set(0, 120, 0);
+    controls.maxDistance = 500;
+    controls.minDistance = 20;
+    controls.maxPolarAngle = Math.PI / 2 - 0.02; // keeping it above ground
+
+    // 2. Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    scene.add(ambientLight);
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    keyLight.position.set(150, 300, 150);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.width = 4096;
+    keyLight.shadow.mapSize.height = 4096;
+    keyLight.shadow.camera.near = 10;
+    keyLight.shadow.camera.far = 1000;
+    keyLight.shadow.camera.left = -200;
+    keyLight.shadow.camera.right = 200;
+    keyLight.shadow.camera.top = 250;
+    keyLight.shadow.camera.bottom = -100;
+    keyLight.shadow.bias = -0.0001;
+    scene.add(keyLight);
+
+    const rimLight = new THREE.DirectionalLight(0x77abff, 3.0);
+    rimLight.position.set(-200, 100, -200);
+    scene.add(rimLight);
+
+    // 3. Ultra-realistic Materials (MeshPhysicalMaterial)
+    const matSilver = new THREE.MeshPhysicalMaterial({
+      color: 0xcccccc, metalness: 1.0, roughness: 0.15, clearcoat: 0.3, clearcoatRoughness: 0.1
+    });
+
+    const matDarkMetal = new THREE.MeshPhysicalMaterial({
+      color: 0x222222, metalness: 0.8, roughness: 0.35, clearcoat: 0.1
+    });
+
+    const matGlossyBlack = new THREE.MeshPhysicalMaterial({
+      color: 0x0a0a0a, metalness: 0.7, roughness: 0.1, clearcoat: 0.8
+    });
+
+    const matRubber = new THREE.MeshStandardMaterial({
+      color: 0x111111, roughness: 0.9, metalness: 0.0
+    });
+
+    const matBlueMetal = new THREE.MeshPhysicalMaterial({
+      color: 0x0f2a5c, metalness: 0.6, roughness: 0.4, clearcoat: 0.5
+    });
+
+    const matLightGrey = new THREE.MeshPhysicalMaterial({
+      color: 0x999999, metalness: 0.4, roughness: 0.5
+    });
+
+    const matYellow = new THREE.MeshPhysicalMaterial({
+      color: 0xffa200, metalness: 0.1, roughness: 0.4, clearcoat: 0.5
+    });
+
+    const group = new THREE.Group();
+    scene.add(group);
+    const scaleFactor = 3;
+
+    // 4. Build Detailed Components
+    const mastSections = [];
+    const mastGroup = new THREE.Group();
+    group.add(mastGroup);
+
+    // B. Detailed Outrigger Legs (4 corners)
+    const legLength = 65 * scaleFactor;
+    const legWidth = 8 * scaleFactor;
+    const legHeight = 7 * scaleFactor;
+    const handles = [];
+
+    for (let i = 0; i < 4; i++) {
+        const angle = (i * Math.PI / 2) + Math.PI / 4;
+        const legGroup = new THREE.Group();
+        const legMesh = new THREE.Mesh(new RoundedBoxGeometry(legLength, legHeight, legWidth, 4, 1), matDarkMetal);
+        legMesh.position.set(legLength / 2 + 10 * scaleFactor, 3 * scaleFactor + 4, 0);
+        legMesh.castShadow = true;
+        legMesh.receiveShadow = true;
+        legGroup.add(legMesh);
+
+        const innerLeg = new THREE.Mesh(new THREE.BoxGeometry(legLength * 0.7, legHeight * 0.7, legWidth * 0.7), matSilver);
+        innerLeg.position.set(legLength + 5 * scaleFactor, 3 * scaleFactor + 4, 0);
+        legGroup.add(innerLeg);
+
+        for (let s = 0; s < 4; s++) {
+            const stripe = new THREE.Mesh(new THREE.BoxGeometry(3 * scaleFactor, legHeight + 0.5, legWidth + 0.5), (s % 2 == 0 ? matYellow : matGlossyBlack));
+            stripe.position.set(legLength + 15 * scaleFactor + (s * 4 * scaleFactor), 3 * scaleFactor + 4, 0);
+            stripe.rotation.z = Math.PI / 12;
+            legGroup.add(stripe);
+        }
+        const hydr = new THREE.Mesh(new THREE.CylinderGeometry(1.5 * scaleFactor, 1.5 * scaleFactor, legLength * 0.8, 16), matBlueMetal);
+        hydr.rotation.z = Math.PI / 2;
+        hydr.position.set(legLength / 2 + 20 * scaleFactor, 3 * scaleFactor + 4 + legHeight / 2 + 2, 0);
+        legGroup.add(hydr);
+
+        const endX = legLength * 1.35;
+        const bracket = new THREE.Mesh(new THREE.BoxGeometry(8 * scaleFactor, 14 * scaleFactor, 10 * scaleFactor), matDarkMetal);
+        bracket.position.set(endX, 6 * scaleFactor, 0);
+        legGroup.add(bracket);
+
+        const handleGrp = new THREE.Group();
+        handleGrp.position.set(endX, 15 * scaleFactor, 0);
+        const crankCenter = new THREE.Mesh(new THREE.CylinderGeometry(3 * scaleFactor, 3 * scaleFactor, 2 * scaleFactor, 16), matBlueMetal);
+        handleGrp.add(crankCenter);
+        handleGrp.add(new THREE.Mesh(new THREE.BoxGeometry(16 * scaleFactor, 1.5 * scaleFactor, 1.5 * scaleFactor), matSilver));
+        const handleKnob = new THREE.Mesh(new THREE.CylinderGeometry(1.5 * scaleFactor, 1.5 * scaleFactor, 5 * scaleFactor, 16), matRubber);
+        handleKnob.rotation.x = Math.PI / 2;
+        handleKnob.position.set(7 * scaleFactor, 2.5 * scaleFactor, 0);
+        handleGrp.add(handleKnob);
+        legGroup.add(handleGrp);
+        handles.push(handleGrp);
+
+        const footD = new THREE.Mesh(new THREE.CylinderGeometry(6 * scaleFactor, 6.5 * scaleFactor, 1.5 * scaleFactor, 32), matSilver);
+        footD.position.set(endX, -3.5 * scaleFactor, 0);
+        footD.castShadow = true;
+        legGroup.add(footD);
+
+        legGroup.rotation.y = -angle;
+        group.add(legGroup);
+    }
+
+    // C. Equipment Payload
+    const pumpGroup = new THREE.Group();
+    pumpGroup.position.set(12 * scaleFactor, 12 * scaleFactor, 14 * scaleFactor);
+    pumpGroup.add(new THREE.Mesh(new RoundedBoxGeometry(16, 10, 16, 3, 1.5), matBlueMetal));
+    group.add(pumpGroup);
+
+    // D. The Pneumatic Telescopic Mast
+    const numSections = 8;
+    const sectionHeight = 40 * scaleFactor;
+    const overlap = 4 * scaleFactor;
+    let currentRadius = 14 * scaleFactor;
+
+    for (let i = 0; i < numSections; i++) {
+        const sectionGrp = new THREE.Group();
+        
+        // Polished Tube
+        const tubeGeom = new THREE.CylinderGeometry(currentRadius, currentRadius, sectionHeight, 64);
+        tubeGeom.translate(0, sectionHeight / 2, 0);
+        const tube = new THREE.Mesh(tubeGeom, matSilver);
+        tube.castShadow = true;
+        tube.receiveShadow = true;
+        sectionGrp.add(tube);
+
+        // Collar
+        const collarRadius = currentRadius + 1.8 * scaleFactor;
+        const collar = new THREE.Mesh(new THREE.CylinderGeometry(collarRadius, collarRadius, 4 * scaleFactor, 64), i === 0 ? matDarkMetal : matGlossyBlack);
+        collar.position.y = sectionHeight;
+        sectionGrp.add(collar);
+
+        // Small Top Flange for the very last section
+        if (i === numSections - 1) {
+            const topPlate = new THREE.Mesh(new THREE.CylinderGeometry(8 * scaleFactor, 8 * scaleFactor, 1.5 * scaleFactor, 32), matGlossyBlack);
+            topPlate.position.y = sectionHeight + 1 * scaleFactor;
+            sectionGrp.add(topPlate);
+            
+            const sensorBox = new THREE.Mesh(new RoundedBoxGeometry(6 * scaleFactor, 4 * scaleFactor, 6 * scaleFactor), matSilver);
+            sensorBox.position.y = sectionHeight + 4 * scaleFactor;
+            sectionGrp.add(sensorBox);
+            sectionGrp.userData.isTop = true;
+        }
+
+        sectionGrp.position.y = i === 0 ? 15 : 0; // Base position
+        mastSections.push(sectionGrp);
+        if (i === 0) mastGroup.add(sectionGrp);
+        else mastSections[i-1].add(sectionGrp); // Parent each to the one below
+
+        currentRadius -= 1.2 * scaleFactor;
+    }
+
+    // E. Dynamic Cables
+    const cables = [];
+    const createCable = (color, radius, offsetRot) => {
+        const points = [];
+        for(let i=0; i<20; i++) points.push(new THREE.Vector3());
+        const curve = new THREE.CatmullRomCurve3(points);
+        const geom = new THREE.TubeGeometry(curve, 64, radius, 8, false);
+        const mesh = new THREE.Mesh(geom, color);
+        mesh.castShadow = true;
+        group.add(mesh);
+        return { mesh, points, curve, offsetRot, radius };
+    };
+
+    const cable1 = createCable(matRubber, 1.2 * scaleFactor, 0);
+    const cable2 = createCable(matYellow, 0.8 * scaleFactor, 0.3);
+    const cable3 = createCable(matBlueMetal, 0.6 * scaleFactor, 0.6);
+    cables.push(cable1, cable2, cable3);
+
+    function updateCables(extension) {
+        const topSection = mastSections[numSections - 1];
+        const topPos = new THREE.Vector3();
+        topSection.getWorldPosition(topPos);
+        topPos.y += sectionHeight;
+
+        cables.forEach((c, index) => {
+            const startPos = index === 0 ? new THREE.Vector3(12 * scaleFactor, 22 * scaleFactor, 14 * scaleFactor) : 
+                             index === 1 ? new THREE.Vector3(-16 * scaleFactor, 25 * scaleFactor, 16 * scaleFactor) :
+                             new THREE.Vector3(0, 15 * scaleFactor, 0);
+            
+            for (let i = 0; i < c.points.length; i++) {
+                const t = i / (c.points.length - 1);
+                const y = THREE.MathUtils.lerp(startPos.y, topPos.y, t);
+                const r = 20 + Math.sin(t * Math.PI) * 40 * (1 - extension * 0.5);
+                const rot = t * Math.PI * 3 + c.offsetRot;
+                
+                c.points[i].set(
+                    Math.cos(rot) * r,
+                    y,
+                    Math.sin(rot) * r
+                );
+            }
+            c.curve.points = c.points;
+            c.mesh.geometry.dispose();
+            c.mesh.geometry = new THREE.TubeGeometry(c.curve, 64, c.radius, 8, false);
+        });
+    }
+
+    // 5. Diagonal Support Struts
+    const strutGeom = new THREE.CylinderGeometry(1.5 * scaleFactor, 1.5 * scaleFactor, 30 * scaleFactor);
+    const strutPositions = [
+      { x: 10, z: 10, rx: -Math.PI / 5, ry: Math.PI / 4 },
+      { x: -10, z: 10, rx: -Math.PI / 5, ry: -Math.PI / 4 },
+      { x: 10, z: -10, rx: Math.PI / 5, ry: -Math.PI / 4 },
+      { x: -10, z: -10, rx: Math.PI / 5, ry: Math.PI / 4 }
+    ];
+    strutPositions.forEach(pos => {
+      const strut = new THREE.Mesh(strutGeom, matDarkMetal);
+      strut.position.set(pos.x * scaleFactor, 18 * scaleFactor, pos.z * scaleFactor);
+      strut.rotation.set(pos.rx, pos.ry, 0);
+      group.add(strut);
+    });
+
+    // Animation & Rendering Loop
+    let autoRotate = true;
+    controls.addEventListener('start', () => { autoRotate = false; });
+
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const elapsed = clock.getElapsedTime();
+      
+      // Mast Extension Animation (0 to 1)
+      const extension = (Math.sin(elapsed * 0.5) + 1) / 2;
+      
+      // Animate Sections
+      for (let i = 1; i < numSections; i++) {
+          // Each section slides up relative to its parent
+          mastSections[i].position.y = extension * (sectionHeight - overlap);
+      }
+
+      // Animate Handles
+      handles.forEach((h, i) => {
+          h.rotation.y = elapsed * 2 * (i % 2 === 0 ? 1 : -1);
+      });
+
+      // Update Dynamic Cables
+      updateCables(extension);
+
+      if (autoRotate) { group.rotation.y += 0.001; }
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+  </script>
+
+  <div class="ui-container">
+    <h1 class="main-title">Hydraulic Telescopic Mast</h1>
+    <div class="sub-headings">
+      <span>Defence</span>
+      <div class="divider"></div>
+      <span>Subsea</span>
+    </div>
+  </div>
+</body>
+
+</html>
