@@ -15,12 +15,10 @@ export type Project = {
 
 export const CATEGORIES = [
   "Show All",
-  "3D Modeling of Products",
-  "Industrial Hydraulics & SPM",
-  "Telescopic Mast",
   "Aerospace and Defence Components",
-  "Composite Components",
-  "Pressure tight connectors",
+  "Telescopic Mast",
+  "Industrial Hydraulics & SPM",
+  "3D Modeling of Products",
 ] as const;
 
 export const PROJECTS: Project[] = [
@@ -249,7 +247,7 @@ export const PROJECTS: Project[] = [
     title: "5m Telescopic Mast with Pan & Tilt",
     category: "Telescopic Mast",
     description: "5 m telescopic mast equipped with a pan & tilt system for versatile positioning.",
-    img: "/AllProjects/Telescopic Mast/5m_telescopic_mast.png",
+    img: "/AllProjects/Telescopic Mast/5m Telescopic Mast with Pan & Tilt.jpg",
     specs: {
       erectedHeight: "5.0 m",
       retractedHeight: "2.0 m",
@@ -362,25 +360,16 @@ export const PROJECTS: Project[] = [
     img: "/AllProjects/Industrial Hydraulics & SPM Division/PLC OPERATED ARTICLE LOADING AND UNLOADING SYSTEM.png"
   },
   {
-    id: 304,
-    title: "Heavy Duty Scissor Lift (10 Mt Height, 1 Ton Payload)",
-    category: "Industrial Hydraulics & SPM",
-    description: "Hydraulic lifting system designed for heavy industrial applications with high load capacity.",
-    img: "/AllProjects/Industrial Hydraulics & SPM Division/ea-heavy-duty-scissor-lift.png"
-  },
-  {
-    id: 305,
-    title: "Motorized Hydraulic Scissor Lift (500 kg Payload)",
-    category: "Industrial Hydraulics & SPM",
-    description: "Compact motorized lifting solution for medium-duty industrial operations.",
-    img: "/AllProjects/Industrial Hydraulics & SPM Division/EA-Heavy Duty Scissor Lifts & Hydraulics & Power packs2 (500 kg Payload).png"
-  },
-  {
     id: 306,
     title: "Hydraulic Scissor Lift",
     category: "Industrial Hydraulics & SPM",
-    description: "Material handling system supplied to Nuclear Fuel Complex for lifting applications.",
-    img: "/AllProjects/Industrial Hydraulics & SPM Division/Heavy Duty Scissor Lifts & Hydraulics & Power packs3.jpg"
+    description: "Precision-engineered scissor lifts, ranging from motorized (500 kg payload) to heavy-duty systems (10m height, 1-ton payload) for industrial lifting applications.",
+    img: "/AllProjects/Industrial Hydraulics & SPM Division/Heavy Duty Scissor Lifts & Hydraulics & Power packs3.jpg",
+    gallery: [
+      "/AllProjects/Industrial Hydraulics & SPM Division/Heavy Duty Scissor Lifts & Hydraulics & Power packs3.jpg",
+      "/AllProjects/Industrial Hydraulics & SPM Division/EA-Heavy Duty Scissor Lifts & Hydraulics & Power packs2 (500 kg Payload).png",
+      "/AllProjects/Industrial Hydraulics & SPM Division/ea-heavy-duty-scissor-lift.png"
+    ]
   },
   {
     id: 307,

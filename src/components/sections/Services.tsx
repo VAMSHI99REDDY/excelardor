@@ -14,6 +14,28 @@ const services = [
     img: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=800",
   },
   {
+    title: "Precision Fabrication",
+    description: "Specialized engineering and fabrication works for complex military systems.",
+    icon: <Hammer size={24} />,
+    color: "from-cyan-500/20 to-transparent",
+    img: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?q=80&w=800",
+  },
+  {
+    title: "Decontamination Equipment",
+    description: "Essential systems for maintaining safety and operational readiness.",
+    icon: <ShieldCheck size={24} />,
+    color: "from-emerald-500/20 to-transparent",
+    img: "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=800",
+  },
+  {
+    title: "Composite & FRP Components",
+    subtitle: "Aerospace, Defence & Customized Applications",
+    description: "Providing lightweight, durable, and precision-engineered Composite and FRP solutions for Aerospace, Defence, and customized industrial requirements.",
+    icon: <Layers size={24} />,
+    color: "from-orange-500/20 to-transparent",
+    img: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?q=80&w=800",
+  },
+  {
     title: "Telescopic Masts",
     description: "Electro Mechanical, Pneumatic, Hydraulic, Push Fit, and Hand Crank winch options.",
     icon: <Layers size={24} />,
@@ -21,11 +43,11 @@ const services = [
     img: "https://images.unsplash.com/photo-1508247271404-5161d9a04f2f?q=80&w=800",
   },
   {
-    title: "Precision Fabrication",
-    description: "Specialized engineering and fabrication works for complex military systems.",
-    icon: <Hammer size={24} />,
-    color: "from-cyan-500/20 to-transparent",
-    img: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?q=80&w=800",
+    title: "Annual Maintenance Support for Telescopic Mast",
+    description: "Providing reliable annual maintenance services to ensure optimal performance and extended life of telescopic mast systems.",
+    icon: <Cog size={24} />,
+    color: "from-teal-500/20 to-transparent",
+    img: "https://images.unsplash.com/photo-1518314916301-73c13b10c662?q=80&w=800",
   },
   {
     title: "Industrial Hydraulic Equipment",
@@ -49,13 +71,6 @@ const services = [
     img: "https://images.unsplash.com/photo-1553413002-9c65ce1e582d?q=80&w=800",
   },
   {
-    title: "Decontamination Equipment",
-    description: "Essential systems for maintaining safety and operational readiness.",
-    icon: <ShieldCheck size={24} />,
-    color: "from-emerald-500/20 to-transparent",
-    img: "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=800",
-  },
-  {
     title: "Scrubbers for Process Plants",
     description: "Efficient scrubbing systems for environmental and process control.",
     icon: <Factory size={24} />,
@@ -66,13 +81,6 @@ const services = [
     title: "Custom Designing Products",
     description: "Delivering innovative, precision-engineered custom products tailored to unique industrial, defense, and aerospace requirements.",
     icon: <Settings size={24} />,
-    color: "from-teal-500/20 to-transparent",
-    img: "https://images.unsplash.com/photo-1518314916301-73c13b10c662?q=80&w=800",
-  },
-  {
-    title: "Annual Maintenance Support for Telescopic Mast",
-    description: "Providing reliable annual maintenance services to ensure optimal performance and extended life of telescopic mast systems.",
-    icon: <Cog size={24} />,
     color: "from-teal-500/20 to-transparent",
     img: "https://images.unsplash.com/photo-1518314916301-73c13b10c662?q=80&w=800",
   },
@@ -137,7 +145,7 @@ const Services = () => {
           </motion.div>
         </div>
 
-        <div ref={containerRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-px bg-black/5 border border-black/10 rounded-[24px] overflow-hidden">
+        <div ref={containerRef} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-px bg-black/5 border border-black/10 rounded-[24px] overflow-hidden">
           {services.map((service, index) => (
             <motion.div
               key={index}
@@ -145,17 +153,22 @@ const Services = () => {
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: index * 0.05 }}
-              className={`group bg-transparent p-8 flex flex-col h-full relative overflow-hidden transition-colors duration-500 hover:bg-black/5 ${index === 10 ? "sm:col-span-2 lg:col-span-2 xl:col-span-5" : ""}`}
+              className="group bg-transparent p-8 flex flex-col h-full relative overflow-hidden transition-colors duration-500 hover:bg-black/5"
             >
-              <div className={`relative z-10 flex h-full ${index === 10 ? "flex-col xl:flex-row xl:items-center xl:gap-8" : "flex-col"}`}>
-                <div className={`${index === 10 ? "mb-4 xl:mb-0 xl:flex-shrink-0" : "mb-8"} text-black/40 group-hover:text-blue-600 transition-colors duration-500`}>
-                  {React.cloneElement(service.icon as React.ReactElement<{ size?: number }>, { size: index === 10 ? 24 : 20 })}
+              <div className="relative z-10 flex h-full flex-col">
+                <div className="mb-8 text-black/40 group-hover:text-blue-600 transition-colors duration-500">
+                  {React.cloneElement(service.icon as React.ReactElement<{ size?: number }>, { size: 20 })}
                 </div>
                 
-                <div className={`flex flex-col ${index === 10 ? "xl:flex-row xl:items-center xl:gap-8 xl:flex-grow" : "h-full"}`}>
-                  <h3 className={`text-lg font-bold text-black mb-3 leading-tight ${index === 10 ? "xl:mb-0 xl:min-w-[280px]" : ""}`}>
+                <div className="flex flex-col h-full">
+                  <h3 className={`text-lg font-bold text-black ${service.subtitle ? "mb-1" : "mb-3"} leading-tight`}>
                     {service.title}
                   </h3>
+                  {service.subtitle && (
+                    <p className="text-black font-semibold text-[11px] uppercase tracking-wider mb-3">
+                      {service.subtitle}
+                    </p>
+                  )}
                   <p className="text-black/60 font-medium text-[13px] leading-relaxed mb-4 xl:mb-0 flex-grow">
                     {service.description}
                   </p>

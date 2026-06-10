@@ -4,6 +4,7 @@ import React from "react";
 import Footer from "@/components/layout/Footer";
 import { Hammer, Settings, Layers, Zap, Cog, ShieldCheck, Factory, Box } from "lucide-react";
 import { motion } from "framer-motion";
+import Strengths from "@/components/sections/Strengths";
 
 const services = [
   {
@@ -12,14 +13,30 @@ const services = [
     icon: <Settings size={28} strokeWidth={1.5} />,
   },
   {
+    title: "Precision Fabrication",
+    description: "Specialized engineering and fabrication works for complex military systems.",
+    icon: <Hammer size={28} strokeWidth={1.5} />,
+  },
+  {
+    title: "Decontamination Equipment",
+    description: "Essential systems for maintaining safety and operational readiness.",
+    icon: <ShieldCheck size={28} strokeWidth={1.5} />,
+  },
+  {
+    title: "Composite & FRP Components",
+    subtitle: "Aerospace, Defence & Customized Applications",
+    description: "Providing lightweight, durable, and precision-engineered Composite and FRP solutions for Aerospace, Defence, and customized industrial requirements.",
+    icon: <Layers size={28} strokeWidth={1.5} />,
+  },
+  {
     title: "Telescopic Masts",
     description: "Electro Mechanical, Pneumatic, Hydraulic, Push Fit, and Hand Crank winch options.",
     icon: <Layers size={28} strokeWidth={1.5} />,
   },
   {
-    title: "Precision Fabrication",
-    description: "Specialized engineering and fabrication works for complex military systems.",
-    icon: <Hammer size={28} strokeWidth={1.5} />,
+    title: "Annual Maintenance Support for Telescopic Mast",
+    description: "Providing reliable annual maintenance services to ensure optimal performance and extended life of telescopic mast systems.",
+    icon: <Cog size={28} strokeWidth={1.5} />,
   },
   {
     title: "Industrial Hydraulic Equipment",
@@ -37,11 +54,6 @@ const services = [
     icon: <Box size={28} strokeWidth={1.5} />,
   },
   {
-    title: "Decontamination Equipment",
-    description: "Essential systems for maintaining safety and operational readiness.",
-    icon: <ShieldCheck size={28} strokeWidth={1.5} />,
-  },
-  {
     title: "Scrubbers for Process Plants",
     description: "Efficient scrubbing systems for environmental and process control.",
     icon: <Factory size={28} strokeWidth={1.5} />,
@@ -52,11 +64,6 @@ const services = [
     icon: <Settings size={28} strokeWidth={1.5} />,
   },
   {
-    title: "Annual Maintenance Support for Telescopic Mast",
-    description: "Providing reliable annual maintenance services to ensure optimal performance and extended life of telescopic mast systems.",
-    icon: <Cog size={28} strokeWidth={1.5} />,
-  },
-  {
     title: "Service Support for End Product",
     description: "Offering dedicated end-product service support for seamless operation, maintenance, and long-term customer satisfaction.",
     icon: <ShieldCheck size={28} strokeWidth={1.5} />,
@@ -65,7 +72,7 @@ const services = [
 
 export default function ServicesPage() {
   return (
-    <main className="relative min-h-screen font-sans text-black bg-[#BEBEB8]">
+    <main className="relative min-h-screen font-sans text-black bg-[#F9F9F9]">
 
         {/* ─── CINEMATIC HERO SECTION ─── */}
         <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
@@ -120,7 +127,7 @@ export default function ServicesPage() {
         </section>
 
         {/* ─── CAPABILITIES OVERVIEW SECTION ─── */}
-        <section className="relative z-20 w-full pt-16 md:pt-24 px-6 md:px-12 flex justify-center bg-[#BEBEB8]">
+        <section className="relative z-20 w-full pt-16 md:pt-24 px-6 md:px-12 flex justify-center bg-[#F9F9F9]">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -149,22 +156,29 @@ export default function ServicesPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.05, ease: "easeOut" }}
-                className={`group flex flex-col h-full bg-transparent p-6 md:p-8 transition-colors duration-500 hover:bg-[#dfdbd4] cursor-pointer ${index === 10 ? "md:col-span-2 lg:col-span-2" : ""}`}
+                className="group flex flex-col h-full bg-transparent p-6 md:p-8 transition-colors duration-500 hover:bg-black/5 cursor-pointer"
               >
-                <div className={`flex h-full ${index === 10 ? "flex-col md:flex-row md:items-center md:gap-8" : "flex-col"}`}>
+                <div className="flex h-full flex-col">
                   {/* Icon */}
-                  <div className={`${index === 10 ? "mb-4 md:mb-0 md:flex-shrink-0" : "mb-8"} text-black/50 group-hover:text-blue-600 transition-colors duration-500`}>
+                  <div className="mb-8 text-black/50 group-hover:text-blue-600 transition-colors duration-500">
                     {service.icon}
                   </div>
 
-                  <div className={`flex flex-col ${index === 10 ? "md:flex-row md:items-center md:gap-8 md:flex-grow" : "h-full"}`}>
+                  <div className="flex flex-col h-full">
                     {/* Title */}
-                    <h3 className={`text-xl md:text-2xl font-bold text-black mb-4 leading-tight ${index === 10 ? "md:mb-0 md:min-w-[280px]" : ""}`}>
+                    <h3 className={`text-xl md:text-2xl font-bold text-black ${(service as any).subtitle ? "mb-1" : "mb-4"} leading-tight`}>
                       {service.title}
                     </h3>
 
+                    {/* Subtitle */}
+                    {(service as any).subtitle && (
+                      <p className="text-black font-semibold text-[11px] uppercase tracking-wider mb-4">
+                        {(service as any).subtitle}
+                      </p>
+                    )}
+
                     {/* Description */}
-                    <p className="text-black/60 font-medium text-[14px] md:text-[15px] leading-relaxed mb-4 md:mb-0 flex-grow">
+                    <p className="text-black/60 font-medium text-[14px] md:text-[15px] leading-relaxed flex-grow">
                       {service.description}
                     </p>
                   </div>
@@ -173,6 +187,9 @@ export default function ServicesPage() {
             ))}
           </div>
         </div>
+        
+        {/* OUR CORE STRENGTHS / WHY CHOOSE US */}
+        <Strengths />
 
         <div className="bg-black text-white">
           <Footer />

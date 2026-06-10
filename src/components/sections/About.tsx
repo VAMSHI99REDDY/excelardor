@@ -13,28 +13,32 @@ const TEAM = [
   //   avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200",
   // },
   {
-    name: "Ch Sudheer",
-    role: "Design Engineer (Mechanical)",
-    quote: "Mechanical Engineering Graduate. Having 5 Years of Experience in Designing of Masts & SPMs and Production Management.",
-    avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=200",
+    name: "Ch. Sudheer",
+    role: "Plant Head & Operations Manager",
+    quote: "Mr. Ch. Sudheer has been associated with Excel Ardor Pvt. Ltd. for over 8 years and plays a key role in managing manufacturing operations, production planning, quality control, and project execution. With strong technical expertise and operational leadership, he ensures efficient plant operations and supports the company's growth in aerospace, defence, and advanced manufacturing sectors.",
+    avatar: "/peopleimg/Mr. Ch. Sudheer – Plant Head & Operations Manager.png",
   },
   {
-    name: "P Prasad",
-    role: "Technical Consultant (Mechanical)",
-    quote: "Holds Masters in Mechanical engineering. Having experience of 30 years in the field of designing, Manufacturing, Planning, Quality and Troubleshooting.",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200",
+    name: "P. Sai Charan",
+    role: "Additional Director",
+    quote: "P. Sai Charan is a technology-driven leader specializing in semiconductor engineering, artificial intelligence, embedded systems, and advanced computing. With global industry experience, he contributes to the company's modernization initiatives and next-generation defence and aerospace technologies.",
+    avatar: "/peopleimg/P. Sai Charan – Additional Director.png",
   },
   {
-    name: "N Rajasekhar",
-    role: "Engineer (Mechanical)",
-    quote: "Diploma Graduate. Having 12 Years of Experience in the field of Fitter and Supervising the workshop.",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200",
+    name: "P. Prasad",
+    role: "Senior Mechanical Consultant",
+    quote: "Mr. P. Prasad is a seasoned mechanical engineering professional with vast experience in tooling systems, machine design, and manufacturing technologies. He provides valuable technical guidance in the development of dies, fixtures, and special-purpose machines.",
   },
   {
-    name: "Sunny",
-    role: "Designer",
-    quote: "Mechanical Engineering Graduate. Having 3 Years of Experience in Designing of Engineering Precision Components.",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200",
+    name: "N. Rajasekhar",
+    role: "Plant Supervisor & Maintenance In-Charge",
+    quote: "Mr. N. Rajasekhar has been with Excel Ardor Pvt. Ltd. for nearly 15 years and oversees plant operations, machine maintenance, tooling management, and workforce coordination. His extensive shop-floor experience and commitment to quality contribute significantly to maintaining efficient manufacturing processes and operational excellence.",
+    avatar: "/peopleimg/Mr. N. Rajasekhar – Plant Supervisor & Maintenance Incharge.png",
+  },
+  {
+    name: "R. Sunny Babu",
+    role: "Design & Quality Engineer",
+    quote: "Mr. R. Sunny Babu specializes in mechanical design, quality inspection, and engineering documentation. He supports the organization by ensuring compliance with technical specifications and maintaining high standards of quality across projects.",
   },
 ];
 
@@ -207,15 +211,21 @@ const About = () => {
                 className="bg-white rounded-[24px] p-8 flex flex-col items-center text-center shadow-[0_4px_24px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-300 group border border-black/[0.02] h-full"
               >
                 {/* Avatar Image */}
-                <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-[#EDEBE8] group-hover:border-blue-50 transition-colors mb-6 shadow-sm flex-shrink-0">
-                  <Image
-                    src={member.avatar}
-                    alt={member.name}
-                    fill
-                    sizes="96px"
-                    className="object-cover"
-                  />
-                </div>
+                {member.avatar ? (
+                  <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-[#EDEBE8] group-hover:border-blue-50 transition-colors mb-6 shadow-sm flex-shrink-0">
+                    <Image
+                      src={member.avatar}
+                      alt={member.name}
+                      fill
+                      sizes="96px"
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-24 h-24 rounded-full border-4 border-[#EDEBE8] group-hover:border-blue-50 transition-colors mb-6 shadow-sm flex-shrink-0 bg-black/5 flex items-center justify-center text-black/40 font-bold text-xl">
+                    {member.name.split('.').pop()?.trim().charAt(0) || member.name.charAt(0)}
+                  </div>
+                )}
 
                 {/* Name & Role */}
                 <h3 className="text-[19px] font-bold text-black mb-1 tracking-tight">{member.name}</h3>

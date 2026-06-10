@@ -3,6 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
+import Statistics from "./Statistics";
 
 // Massive Performance Optimization: Lazy Load Heavy 3D Model
 const TelescopicMast = dynamic(() => import("@/components/3d/TelescopicMast"), {
@@ -78,6 +79,9 @@ export default function Expertise() {
           </div>
 
         </div>
+
+        {/* STATISTICS SECTION */}
+        <Statistics />
 
       </div>
 

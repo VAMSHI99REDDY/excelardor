@@ -8,38 +8,42 @@ const TEAM = [
   {
     name: "N. Vijay Kumar",
     role: "Founder & Managing Director",
-    quote: "Founder & Managing Director with over 20 years of experience in hydraulics, telescopic masts, and precision engineering, driving innovation and strategic growth.",
+    quote: "Mr. N. Vijay Kumar is the Founder & Managing Director. In 2010, he developed and patented an Internal Hydraulic Telescopic Mast System. In 2014, he established Excel Ardor Pvt. Ltd. to focus on advanced Telescopic Masts, Defence & Aerospace Components, and Precision Engineering Solutions, driving strategic growth and indigenous innovation.",
     avatar: "/peopleimg/Mr. N. Vijay Kumar.png",
   },
   {
-    name: "Cdr.Praveen Chandra",
+    name: "Cdr. Praveen Chandra",
     role: "Director & Strategic Advisor",
-    quote: "Strategic Advisor with extensive defence technology expertise, guiding corporate strategy and advanced engineering solutions.",
+    quote: "Cdr. Praveen Chandra is a Director & Strategic Advisor. An IIT Kharagpur Gold Medalist, he brings decades of experience in defence systems and advanced communications, working closely with DRDO, BEL, BDL, and the Indian Navy to strengthen the company's next-generation strategic growth.",
     avatar: "/peopleimg/Commodore Praveen Chandra.png",
   },
   {
     name: "Ch. Sudheer",
-    role: "Design Engineer – Mechanical",
-    quote: "Mechanical Design Engineer with 5 years of experience in mast and SPM design and production management.",
-    avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=200",
+    role: "Plant Head & Operations Manager",
+    quote: "Mr. Ch. Sudheer has been associated with Excel Ardor Pvt. Ltd. for over 8 years and plays a key role in managing manufacturing operations, production planning, quality control, and project execution. With strong technical expertise and operational leadership, he ensures efficient plant operations and supports the company's growth in aerospace, defence, and advanced manufacturing sectors.",
+    avatar: "/peopleimg/Mr. Ch. Sudheer – Plant Head & Operations Manager.png",
+  },
+  {
+    name: "P. Sai Charan",
+    role: "Additional Director",
+    quote: "P. Sai Charan is a technology-driven leader specializing in semiconductor engineering, artificial intelligence, embedded systems, and advanced computing. With global industry experience, he contributes to the company's modernization initiatives and next-generation defence and aerospace technologies.",
+    avatar: "/peopleimg/P. Sai Charan – Additional Director.png",
   },
   {
     name: "P. Prasad",
-    role: "Technical Consultant – Mechanical",
-    quote: "Technical Consultant with 30 years of expertise in design, manufacturing, planning, quality, and troubleshooting.",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200",
+    role: "Senior Mechanical Consultant",
+    quote: "Mr. P. Prasad is a seasoned mechanical engineering professional with vast experience in tooling systems, machine design, and manufacturing technologies. He provides valuable technical guidance in the development of dies, fixtures, and special-purpose machines.",
   },
   {
     name: "N. Rajasekhar",
-    role: "Engineer – Mechanical",
-    quote: "Mechanical Engineer with 12 years of workshop experience, specializing in fitting and supervision.",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200",
+    role: "Plant Supervisor & Maintenance In-Charge",
+    quote: "Mr. N. Rajasekhar has been with Excel Ardor Pvt. Ltd. for nearly 15 years and oversees plant operations, machine maintenance, tooling management, and workforce coordination. His extensive shop-floor experience and commitment to quality contribute significantly to maintaining efficient manufacturing processes and operational excellence.",
+    avatar: "/peopleimg/Mr. N. Rajasekhar – Plant Supervisor & Maintenance Incharge.png",
   },
   {
-    name: "Sunny",
-    role: "Designer",
-    quote: "Designer with 3 years of experience in precision component design and engineering.",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200",
+    name: "R. Sunny Babu",
+    role: "Design & Quality Engineer",
+    quote: "Mr. R. Sunny Babu specializes in mechanical design, quality inspection, and engineering documentation. He supports the organization by ensuring compliance with technical specifications and maintaining high standards of quality across projects.",
   },
 ];
 
@@ -219,11 +223,17 @@ export default function Testimonials() {
                     </div>
 
                     <div className="flex items-center gap-4 border-t border-black/5 pt-6 mt-auto">
-                      <img
-                        src={member.avatar}
-                        alt={member.name}
-                        className="w-12 h-12 rounded-full object-cover shadow-sm bg-white"
-                      />
+                      {member.avatar ? (
+                        <img
+                          src={member.avatar}
+                          alt={member.name}
+                          className="w-12 h-12 rounded-full object-cover shadow-sm bg-white"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full border border-black/5 shadow-sm bg-white flex items-center justify-center text-black/50 font-bold text-sm">
+                          {member.name.split('.').pop()?.trim().charAt(0) || member.name.charAt(0)}
+                        </div>
+                      )}
                       <div className="flex flex-col">
                         <h4 className="text-[15px] font-bold text-black leading-tight">{member.name}</h4>
                         <span className="text-[10px] font-black uppercase tracking-widest text-black/40 mt-1 line-clamp-1">{member.role}</span>

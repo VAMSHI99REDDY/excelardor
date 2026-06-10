@@ -13,7 +13,7 @@ import Hero from "@/components/sections/Hero";
 // Section Components - Dynamic for performance
 const MajorCustomers = dynamic(() => import("@/components/sections/MajorCustomers"), { ssr: true });
 const Expertise = dynamic(() => import("@/components/sections/Expertise"), { ssr: true });
-const Strengths = dynamic(() => import("@/components/sections/Strengths"), { ssr: true });
+
 const Projects = dynamic(() => import("@/components/sections/Projects"), { ssr: true });
 const Testimonials = dynamic(() => import("@/components/sections/Testimonials"), { ssr: true });
 const CtaBanner = dynamic(() => import("@/components/sections/CtaBanner"), { ssr: true });
@@ -28,7 +28,7 @@ export default function Home() {
         entries.forEach((entry) => {
           if (videoRef.current) {
             if (entry.isIntersecting) {
-              videoRef.current.play().catch(() => {});
+              videoRef.current.play().catch(() => { });
             } else {
               videoRef.current.pause();
             }
@@ -83,12 +83,11 @@ export default function Home() {
 
           {/* EXPERTISE SECTION */}
           <Expertise />
-          
+
           {/* SERVICES SECTION */}
           <Services />
 
-          {/* STRENGTHS SECTION */}
-          <Strengths />
+
 
           {/* TESTIMONIALS SECTION */}
           <div id="testimonials">

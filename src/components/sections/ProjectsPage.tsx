@@ -231,10 +231,10 @@ const ProjectsPage = () => {
         <section className="py-6 md:py-10">
           {activeCategory === "Show All" ? (
             <div className="flex flex-col pt-4">
-              <CategoryRow title="3D Modeling of Products" projects={PROJECTS.filter(p => p.category === "3D Modeling of Products")} />
-              <CategoryRow title="Industrial Hydraulics & SPM" projects={PROJECTS.filter(p => p.category === "Industrial Hydraulics & SPM")} />
-              <CategoryRow title="Telescopic Mast" projects={PROJECTS.filter(p => p.category === "Telescopic Mast")} />
               <CategoryRow title="Aerospace and Defence Components" projects={PROJECTS.filter(p => p.category === "Aerospace and Defence Components")} />
+              <CategoryRow title="Telescopic Mast" projects={PROJECTS.filter(p => p.category === "Telescopic Mast")} />
+              <CategoryRow title="Industrial Hydraulics & SPM" projects={PROJECTS.filter(p => p.category === "Industrial Hydraulics & SPM")} />
+              <CategoryRow title="3D Modeling of Products" projects={PROJECTS.filter(p => p.category === "3D Modeling of Products")} />
             </div>
           ) : (
             <div className="pt-4">

@@ -74,7 +74,7 @@ const CtaBanner = () => {
                <div className="w-12 h-12 rounded-full border border-black/10 flex items-center justify-center group-hover/phone:border-black/30 transition-colors">
                   <Phone size={18} className="text-black/60" />
                </div>
-               <span className="text-black/80 font-medium tracking-wide">+91 91108 51833</span>
+               <span className="text-black/80 font-medium tracking-wide">+91 9989166874</span>
             </div>
           </motion.div>
         </div>

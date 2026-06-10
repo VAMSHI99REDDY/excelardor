@@ -107,8 +107,8 @@ export default function Contact() {
             transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
             className="bg-white rounded-3xl p-6 sm:p-8 md:p-12 shadow-[0_4px_30px_rgba(0,0,0,0.05)] w-full"
           >
-            <h3 className="text-2xl font-bold text-black mb-8 border-b border-black/10 pb-4">
-              Send us a Message
+            <h3 className="text-2xl font-bold text-black mb-8 border-b border-black/10 pb-4 uppercase tracking-wider">
+              Application Requirements Form
             </h3>
 
             <form
@@ -116,34 +116,207 @@ export default function Contact() {
               onSubmit={(e) => {
                 e.preventDefault();
                 const form = e.currentTarget;
+                
+                const companyName = (form.elements.namedItem('companyName') as HTMLInputElement).value;
+                const hearAboutUs = (form.elements.namedItem('hearAboutUs') as HTMLSelectElement).value;
+                const industry = (form.elements.namedItem('industry') as HTMLSelectElement).value;
+                const application = (form.elements.namedItem('application') as HTMLSelectElement).value;
+                const mastHeight = (form.elements.namedItem('mastHeight') as HTMLSelectElement).value;
+                const devicesCount = (form.elements.namedItem('devicesCount') as HTMLSelectElement).value;
+                const devicesWeight = (form.elements.namedItem('devicesWeight') as HTMLSelectElement).value;
                 const name = (form.elements.namedItem('name') as HTMLInputElement).value;
                 const email = (form.elements.namedItem('email') as HTMLInputElement).value;
                 const phone = (form.elements.namedItem('phone') as HTMLInputElement).value;
-                const subject = (form.elements.namedItem('subject') as HTMLInputElement).value;
                 const message = (form.elements.namedItem('message') as HTMLTextAreaElement).value;
 
-                const bodyText = `Name: ${name}\nEmail: ${email}\nPhone: ${phone || 'N/A'}\n\nMessage:\n${message}`;
+                const subject = `Application Requirements Inquiry - ${companyName || name}`;
+                const bodyText = `APPLICATION REQUIREMENTS INQUIRY\n` +
+                  `========================================\n` +
+                  `Company Name: ${companyName || 'N/A'}\n` +
+                  `How Did You Hear About Us?: ${hearAboutUs}\n` +
+                  `Industry: ${industry}\n` +
+                  `Application: ${application}\n` +
+                  `Required Mast Height: ${mastHeight}\n` +
+                  `Number of Devices: ${devicesCount}\n` +
+                  `Total Weight of Devices: ${devicesWeight}\n` +
+                  `----------------------------------------\n` +
+                  `CONTACT DETAILS\n` +
+                  `----------------------------------------\n` +
+                  `Name: ${name}\n` +
+                  `Email: ${email}\n` +
+                  `Phone: ${phone || 'N/A'}\n\n` +
+                  `Project Requirements / Message:\n${message}`;
 
                 const mailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=excelardor@gmail.com&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`;
                 window.open(mailUrl, '_blank', 'noopener,noreferrer');
               }}
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Company Name */}
                 <div>
-                  <label htmlFor="name" className="block text-sm font-semibold text-black/70 mb-2">
-                    Full Name *
+                  <label htmlFor="companyName" className="block text-[11px] font-bold text-black/75 mb-2 uppercase tracking-wider">
+                    Company Name
+                  </label>
+                  <input
+                    type="text"
+                    id="companyName"
+                    name="companyName"
+                    placeholder="Enter company name"
+                    className="w-full bg-[#BEBEB8]/30 border border-black/10 rounded-xl px-5 py-3.5 text-black placeholder:text-black/30 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black/30 transition-all font-medium text-sm"
+                  />
+                </div>
+
+                {/* How Did You Hear About Us */}
+                <div>
+                  <label htmlFor="hearAboutUs" className="block text-[11px] font-bold text-black/75 mb-2 uppercase tracking-wider">
+                    How Did You Hear About Us? *
+                  </label>
+                  <select
+                    id="hearAboutUs"
+                    name="hearAboutUs"
+                    required
+                    className="w-full bg-[#BEBEB8]/30 border border-black/10 rounded-xl px-5 py-3.5 text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black/30 transition-all font-medium text-sm cursor-pointer"
+                  >
+                    <option value="" className="bg-white">Select Option</option>
+                    <option value="Search Engine" className="bg-white">Search Engine</option>
+                    <option value="Direct Contact" className="bg-white">Direct Contact</option>
+                    <option value="Exhibition / Event" className="bg-white">Exhibition / Event</option>
+                    <option value="Industry Referral" className="bg-white">Industry Referral</option>
+                    <option value="Social Media" className="bg-white">Social Media</option>
+                    <option value="Other" className="bg-white">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Industry */}
+                <div>
+                  <label htmlFor="industry" className="block text-[11px] font-bold text-black/75 mb-2 uppercase tracking-wider">
+                    What Industry Are You In? *
+                  </label>
+                  <select
+                    id="industry"
+                    name="industry"
+                    required
+                    className="w-full bg-[#BEBEB8]/30 border border-black/10 rounded-xl px-5 py-3.5 text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black/30 transition-all font-medium text-sm cursor-pointer"
+                  >
+                    <option value="" className="bg-white">Select Industry</option>
+                    <option value="Defense & Aerospace" className="bg-white">Defense & Aerospace</option>
+                    <option value="Telecommunications" className="bg-white">Telecommunications</option>
+                    <option value="Meteorological" className="bg-white">Meteorological</option>
+                    <option value="Broadcasting" className="bg-white">Broadcasting</option>
+                    <option value="Security & Surveillance" className="bg-white">Security & Surveillance</option>
+                    <option value="Oil & Gas" className="bg-white">Oil & Gas</option>
+                    <option value="Other" className="bg-white">Other</option>
+                  </select>
+                </div>
+
+                {/* Application */}
+                <div>
+                  <label htmlFor="application" className="block text-[11px] font-bold text-black/75 mb-2 uppercase tracking-wider">
+                    What Is Your Application? *
+                  </label>
+                  <select
+                    id="application"
+                    name="application"
+                    required
+                    className="w-full bg-[#BEBEB8]/30 border border-black/10 rounded-xl px-5 py-3.5 text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black/30 transition-all font-medium text-sm cursor-pointer"
+                  >
+                    <option value="" className="bg-white">Select Application</option>
+                    <option value="Radio / Antenna Mounting" className="bg-white">Radio / Antenna Mounting</option>
+                    <option value="Camera / Surveillance" className="bg-white">Camera / Surveillance</option>
+                    <option value="Lighting / Searchlight" className="bg-white">Lighting / Searchlight</option>
+                    <option value="Radar Systems" className="bg-white">Radar Systems</option>
+                    <option value="Weather Station Sensors" className="bg-white">Weather Station Sensors</option>
+                    <option value="Other" className="bg-white">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Mast Height */}
+                <div>
+                  <label htmlFor="mastHeight" className="block text-[11px] font-bold text-black/75 mb-2 uppercase tracking-wider">
+                    Required Mast Height? *
+                  </label>
+                  <select
+                    id="mastHeight"
+                    name="mastHeight"
+                    required
+                    className="w-full bg-[#BEBEB8]/30 border border-black/10 rounded-xl px-5 py-3.5 text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black/30 transition-all font-medium text-sm cursor-pointer"
+                  >
+                    <option value="" className="bg-white">Select Height</option>
+                    {Array.from({ length: 15 }, (_, i) => i + 1).map((height) => (
+                      <option key={height} value={`${height} Meter${height > 1 ? 's' : ''}`} className="bg-white">
+                        {height} Meter{height > 1 ? 's' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Number of Devices */}
+                <div>
+                  <label htmlFor="devicesCount" className="block text-[11px] font-bold text-black/75 mb-2 uppercase tracking-wider">
+                    Number of Devices on a Single Mast? *
+                  </label>
+                  <select
+                    id="devicesCount"
+                    name="devicesCount"
+                    required
+                    className="w-full bg-[#BEBEB8]/30 border border-black/10 rounded-xl px-5 py-3.5 text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black/30 transition-all font-medium text-sm cursor-pointer"
+                  >
+                    <option value="" className="bg-white">Select Number</option>
+                    {Array.from({ length: 15 }, (_, i) => i + 1).map((num) => (
+                      <option key={num} value={num.toString()} className="bg-white">
+                        {num}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Total Weight of All Devices */}
+                <div>
+                  <label htmlFor="devicesWeight" className="block text-[11px] font-bold text-black/75 mb-2 uppercase tracking-wider">
+                    Total Weight of All Devices? *
+                  </label>
+                  <select
+                    id="devicesWeight"
+                    name="devicesWeight"
+                    required
+                    className="w-full bg-[#BEBEB8]/30 border border-black/10 rounded-xl px-5 py-3.5 text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black/30 transition-all font-medium text-sm cursor-pointer"
+                  >
+                    <option value="" className="bg-white">Select Weight</option>
+                    <option value="Under 10 Kg" className="bg-white">Under 10 Kg</option>
+                    <option value="10 - 25 Kg" className="bg-white">10 - 25 Kg</option>
+                    <option value="25 - 50 Kg" className="bg-white">25 - 50 Kg</option>
+                    <option value="50 - 100 Kg" className="bg-white">50 - 100 Kg</option>
+                    <option value="100 - 200 Kg" className="bg-white">100 - 200 Kg</option>
+                    <option value="Over 200 Kg" className="bg-white">Over 200 Kg</option>
+                  </select>
+                </div>
+
+                {/* Name */}
+                <div>
+                  <label htmlFor="name" className="block text-[11px] font-bold text-black/75 mb-2 uppercase tracking-wider">
+                    Name *
                   </label>
                   <input
                     type="text"
                     id="name"
                     name="name"
                     required
-                    placeholder="John Doe"
-                    className="w-full bg-[#BEBEB8]/50 border border-black/10 rounded-xl px-5 py-3.5 text-black placeholder:text-black/30 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black/30 transition-all font-medium"
+                    placeholder="Enter your name"
+                    className="w-full bg-[#BEBEB8]/30 border border-black/10 rounded-xl px-5 py-3.5 text-black placeholder:text-black/30 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black/30 transition-all font-medium text-sm"
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Email Address */}
                 <div>
-                  <label htmlFor="email" className="block text-sm font-semibold text-black/70 mb-2">
+                  <label htmlFor="email" className="block text-[11px] font-bold text-black/75 mb-2 uppercase tracking-wider">
                     Email Address *
                   </label>
                   <input
@@ -152,58 +325,47 @@ export default function Contact() {
                     name="email"
                     required
                     placeholder="john@example.com"
-                    className="w-full bg-[#BEBEB8]/50 border border-black/10 rounded-xl px-5 py-3.5 text-black placeholder:text-black/30 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black/30 transition-all font-medium"
+                    className="w-full bg-[#BEBEB8]/30 border border-black/10 rounded-xl px-5 py-3.5 text-black placeholder:text-black/30 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black/30 transition-all font-medium text-sm"
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Phone Number */}
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-semibold text-black/70 mb-2">
-                    Phone Number
+                  <label htmlFor="phone" className="block text-[11px] font-bold text-black/75 mb-2 uppercase tracking-wider">
+                    Phone Number *
                   </label>
                   <input
                     type="tel"
                     id="phone"
                     name="phone"
-                    placeholder="+91-0000000000"
-                    className="w-full bg-[#BEBEB8]/50 border border-black/10 rounded-xl px-5 py-3.5 text-black placeholder:text-black/30 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black/30 transition-all font-medium"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="subject" className="block text-sm font-semibold text-black/70 mb-2">
-                    Subject *
-                  </label>
-                  <input
-                    type="text"
-                    id="subject"
-                    name="subject"
                     required
-                    placeholder="Engineering Inquiry"
-                    className="w-full bg-[#BEBEB8]/50 border border-black/10 rounded-xl px-5 py-3.5 text-black placeholder:text-black/30 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black/30 transition-all font-medium"
+                    placeholder="Enter phone number"
+                    className="w-full bg-[#BEBEB8]/30 border border-black/10 rounded-xl px-5 py-3.5 text-black placeholder:text-black/30 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black/30 transition-all font-medium text-sm"
                   />
                 </div>
               </div>
 
+              {/* Message */}
               <div>
-                <label htmlFor="message" className="block text-sm font-semibold text-black/70 mb-2">
-                  Message *
+                <label htmlFor="message" className="block text-[11px] font-bold text-black/75 mb-2 uppercase tracking-wider">
+                  Project Requirements / Message *
                 </label>
                 <textarea
                   id="message"
                   name="message"
                   required
                   rows={5}
-                  placeholder="How can we help you..."
-                  className="w-full bg-[#BEBEB8]/50 border border-black/10 rounded-xl px-5 py-3.5 text-black placeholder:text-black/30 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black/30 transition-all font-medium resize-none"
+                  placeholder="Tell us about your project requirements..."
+                  className="w-full bg-[#BEBEB8]/30 border border-black/10 rounded-xl px-5 py-3.5 text-black placeholder:text-black/30 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black/30 transition-all font-medium text-sm resize-none"
                 />
               </div>
 
+              {/* Submit Button */}
               <button
                 type="submit"
-                className="mt-2 w-full md:w-auto self-start bg-transparent text-black px-10 py-4 rounded-xl font-bold tracking-widest uppercase border border-black/20 hover:border-black/50 hover:scale-[1.02] hover:-translate-y-0.5 transition-all active:scale-95"
+                className="mt-4 w-full bg-blue-600 hover:bg-black text-white px-10 py-4.5 rounded-xl font-bold tracking-widest uppercase hover:scale-[1.01] hover:-translate-y-0.5 transition-all duration-300 active:scale-95 shadow-lg shadow-blue-600/20"
               >
-                Send Message
+                Submit Inquiry
               </button>
             </form>
           </motion.div>
