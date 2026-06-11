@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect, useRef } from "react";
+import { motion, useInView } from "framer-motion";
 
 type CategoryCard = {
   title: string;
@@ -10,37 +10,104 @@ type CategoryCard = {
 
 const CATEGORY_CARDS: CategoryCard[] = [
   {
-    title: "5m Telescopic Mast App 1",
+    title: "SURVEILLANCE SYSTEMS",
     img: "/AllProjects/Telescopic Mast/5m_telescopic_mast_app_1.png",
   },
   {
-    title: "5m Telescopic Mast App 2",
+    title: "MILITARY APPLICATIONS",
     img: "/AllProjects/Telescopic Mast/5m_telescopic_mast_app_2.png",
   },
   {
-    title: "5m Telescopic Mast App 3",
+    title: "RADAR & EO/IR SYSTEMS",
     img: "/AllProjects/Telescopic Mast/5m_telescopic_mast_app_3.png",
   },
   {
-    title: "5m Telescopic Mast App 4",
+    title: "COMMUNICATION SYSTEMS",
     img: "/AllProjects/Telescopic Mast/5m_telescopic_mast_app_4.png",
   },
   {
-    title: "Electromechanical Mast (Screw Drive Mast) 1",
+    title: "Electromechanical Mast (Screw Drive Mast)",
     img: "/AllProjects/Telescopic Mast/Electromechanical Mast (Screw Drive Mast) 1.png",
   },
   {
-    title: "Electromechanical Mast (Rope Drive Mast) 3",
+    title: "Electromechanical Mast (Rope Drive Mast)",
     img: "/AllProjects/Telescopic Mast/Electromechanical Mast (Rope Drive Mast) 3.png",
   },
 ];
 
+const ProjectCardItem = ({ card, idx, isMobile }: { card: CategoryCard; idx: number; isMobile: boolean }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  // Trigger animation when the card reaches the middle 30% of the screen vertically
+  const isInView = useInView(ref, { margin: "-35% 0px -35% 0px", once: false });
+
+  return (
+    <div ref={ref} className="relative aspect-[4/3] w-full">
+      <motion.div
+        initial={{ opacity: 0, y: 40, height: "100%" }}
+        whileInView={isMobile ? undefined : { opacity: 1, y: 0, height: "100%" }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.6, delay: isMobile ? 0 : idx * 0.1, ease: "easeOut" }}
+        animate={
+          isMobile
+            ? {
+                opacity: 1,
+                y: 0,
+                height: isInView ? "145%" : "100%",
+                zIndex: isInView ? 30 : 10,
+                boxShadow: isInView
+                  ? "0 25px 50px -12px rgba(0,0,0,0.25)"
+                  : "0 4px 6px -1px rgba(0,0,0,0.1)",
+              }
+            : { height: "100%", zIndex: 10 }
+        }
+        whileHover={
+          !isMobile
+            ? {
+                height: "145%",
+                zIndex: 30,
+                boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
+              }
+            : undefined
+        }
+        className="group absolute bottom-0 left-0 right-0 overflow-hidden rounded-2xl bg-white border border-black/5 shadow-md flex flex-col origin-bottom cursor-default"
+      >
+        {/* Image Container */}
+        <div className="w-full h-full overflow-hidden relative flex flex-col">
+          <img
+            src={card.img}
+            alt={card.title}
+            className="w-full h-full object-cover object-top transition-transform duration-500"
+          />
+
+          {/* Subtle dark gradient overlay over the whole image */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20 pointer-events-none" />
+
+          {/* Clean, perfectly aligned centered blue overlay badge that fits text */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-blue-900/80 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/10 text-center flex items-center justify-center z-10 pointer-events-none w-[90%] max-w-[320px]">
+            <span className="text-white text-[10px] md:text-xs font-bold tracking-wider uppercase drop-shadow-sm leading-snug text-center">
+              {card.title}
+            </span>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 const Projects = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile(); // Check immediately on mount
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   return (
     <section
       id="projects"
-      className="py-12 md:py-20 relative overflow-hidden bg-[#F9F9F9] text-black"
+      className="py-8 md:py-12 relative overflow-hidden bg-[#F9F9F9] text-black"
     >
       {/* Decorative subtle background gradients for premium feel */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
@@ -64,43 +131,10 @@ const Projects = () => {
       </div>
 
       {/* Grid container */}
-      <div className="w-full relative z-10 px-6 md:px-12 container mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+      <div className="w-full relative z-10 px-6 md:px-12 container mx-auto mb-16 md:mb-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-16 sm:gap-6 md:gap-8">
           {CATEGORY_CARDS.map((card, idx) => (
-            <div key={idx} className="relative aspect-[4/3] w-full">
-              <motion.div
-                initial={{ opacity: 0, y: 40, height: "100%" }}
-                whileInView={{ opacity: 1, y: 0, height: "100%" }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.6, delay: idx * 0.1 }}
-                whileHover={{ 
-                  height: "145%", 
-                  zIndex: 30,
-                  boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)"
-                }}
-                style={{ zIndex: 10 }}
-                className="group absolute bottom-0 left-0 right-0 overflow-hidden rounded-2xl bg-white border border-black/5 shadow-md flex flex-col origin-bottom cursor-default"
-              >
-                {/* Image Container */}
-                <div className="w-full h-full overflow-hidden relative flex flex-col">
-                  <img
-                    src={card.img}
-                    alt={card.title}
-                    className="w-full h-full object-cover object-top transition-transform duration-500"
-                  />
-                  
-                  {/* Subtle dark gradient overlay over the whole image */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20 pointer-events-none" />
-                  
-                  {/* Clean, perfectly aligned centered blue overlay badge that fits text */}
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-blue-900/80 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/10 text-center flex items-center justify-center z-10 pointer-events-none w-[90%] max-w-[320px]">
-                    <span className="text-white text-[10px] md:text-xs font-bold tracking-wider uppercase drop-shadow-sm leading-snug text-center">
-                      {card.title}
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
+            <ProjectCardItem key={idx} card={card} idx={idx} isMobile={isMobile} />
           ))}
         </div>
       </div>

@@ -47,12 +47,12 @@ const Navbar = () => {
     };
   }, [isMobileMenuOpen]);
 
-  // UPDATED NAV LINKS ORDER: 
-  // Home -> Projects -> Services -> About Us
+  // Home -> Projects -> Services -> Gallery -> About Us
   const navLinks = [
     { name: "Home", href: "/" },
     { name: "Projects", href: "/projects" },
     { name: "Services", href: "/services" },
+    { name: "Gallery", href: "/gallery" },
     { name: "About Us", href: "/about" },
     // { name: "Privacy Policy", href: "/privacy policy" },
   ];

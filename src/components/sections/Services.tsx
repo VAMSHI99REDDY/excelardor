@@ -164,14 +164,14 @@ const Services = () => {
                   <h3 className={`text-lg font-bold text-black ${service.subtitle ? "mb-1" : "mb-3"} leading-tight`}>
                     {service.title}
                   </h3>
-                  {service.subtitle && (
+                  {/* {service.subtitle && (
                     <p className="text-black font-semibold text-[11px] uppercase tracking-wider mb-3">
                       {service.subtitle}
                     </p>
                   )}
                   <p className="text-black/60 font-medium text-[13px] leading-relaxed mb-4 xl:mb-0 flex-grow">
                     {service.description}
-                  </p>
+                  </p> */}
                 </div>
               </div>
             </motion.div>

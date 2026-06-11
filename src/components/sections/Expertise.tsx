@@ -12,7 +12,9 @@ const TelescopicMast = dynamic(() => import("@/components/3d/TelescopicMast"), {
 
 export default function Expertise() {
   return (
-    <section className="w-full bg-[#F2EDE7] py-8 md:py-12 relative overflow-hidden">
+    <section className="w-full bg-[#E9E5DF] py-12 md:py-16 flex flex-col items-center justify-center relative overflow-hidden text-black z-10 border-t border-black/5">
+      {/* Premium subtle background glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-white/20 rounded-full blur-[150px] pointer-events-none" />
 
       <div className="container mx-auto px-6 md:px-12 relative z-10 flex flex-col w-full">
 

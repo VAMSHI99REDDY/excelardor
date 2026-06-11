@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Settings, FlaskConical, Quote } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import NewTripodMast from "@/components/3d/NewTripodMast";
 
 const TEAM = [
   {
@@ -138,12 +139,12 @@ export default function Testimonials() {
   );
 
   return (
-    <section id="infrastructure" className="w-full bg-[#F2EDE7] py-16 md:py-24 flex flex-col items-center justify-center overflow-hidden">
+    <section id="infrastructure" className="w-full bg-[#F2EDE7] py-8 md:py-12 flex flex-col items-center justify-center overflow-hidden">
       <div className="container mx-auto px-6 md:px-12 flex flex-col gap-6 w-full max-w-[1400px]">
 
         {/* Header with Toggle */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 gap-8 w-full">
-          <div>
+        <div className="bg-white rounded-[2rem] shadow-sm border border-black/5 p-8 md:p-10 flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-8 w-full">
+          <div className="flex-1">
             <span className="text-blue-600 font-bold text-[11px] md:text-[13px] tracking-[0.25em] uppercase mb-4 inline-block">
               Our Leadership – The Minds Behind The Machinery
             </span>
@@ -156,19 +157,33 @@ export default function Testimonials() {
             </p>
           </div>
 
-          <div className="flex bg-white rounded-full p-1.5 shadow-sm border border-black/5 shrink-0 mb-2">
-            <button
-              onClick={() => toggleCategory('machinery')}
-              className={`px-5 py-2.5 rounded-full text-[11px] font-black tracking-widest uppercase transition-all flex items-center gap-2 ${expandedCategory === 'machinery' ? 'bg-black text-white shadow-md' : 'text-black/40 hover:text-black'}`}
+          <div className="flex flex-col items-center lg:items-end gap-8 shrink-0">
+            {/* 3D Model Interactive Component */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="w-full h-[300px] md:h-[400px] lg:h-[450px] max-w-[300px] md:max-w-[350px] lg:max-w-[400px]"
             >
-              <Settings size={14} /> Machinery
-            </button>
-            <button
-              onClick={() => toggleCategory('tools')}
-              className={`px-5 py-2.5 rounded-full text-[11px] font-black tracking-widest uppercase transition-all flex items-center gap-2 ${expandedCategory === 'tools' ? 'bg-black text-white shadow-md' : 'text-black/40 hover:text-black'}`}
-            >
-              <FlaskConical size={14} /> Test Tools
-            </button>
+              <NewTripodMast />
+            </motion.div>
+
+            {/* Toggle Buttons */}
+            <div className="flex bg-gray-50 rounded-full p-1.5 shadow-sm border border-black/5 mb-2">
+              <button
+                onClick={() => toggleCategory('machinery')}
+                className={`px-5 py-2.5 rounded-full text-[11px] font-black tracking-widest uppercase transition-all flex items-center gap-2 ${expandedCategory === 'machinery' ? 'bg-black text-white shadow-md' : 'text-black/40 hover:text-black'}`}
+              >
+                <Settings size={14} /> Machinery
+              </button>
+              <button
+                onClick={() => toggleCategory('tools')}
+                className={`px-5 py-2.5 rounded-full text-[11px] font-black tracking-widest uppercase transition-all flex items-center gap-2 ${expandedCategory === 'tools' ? 'bg-black text-white shadow-md' : 'text-black/40 hover:text-black'}`}
+              >
+                <FlaskConical size={14} /> Test Tools
+              </button>
+            </div>
           </div>
         </div>
 

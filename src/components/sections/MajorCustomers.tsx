@@ -28,7 +28,7 @@ const allLogos = [
 const LogoTickerRow = ({ logos, speed, reverse = false }: { logos: { name: string; src: string }[], speed: number, reverse?: boolean }) => {
   return (
     <div className="flex w-max"
-      style={{ 
+      style={{
         animation: `scroll ${speed}s linear infinite ${reverse ? 'reverse' : 'normal'}`,
         willChange: 'transform'
       }}>
@@ -37,7 +37,7 @@ const LogoTickerRow = ({ logos, speed, reverse = false }: { logos: { name: strin
           {logos.map((logo, idx) => (
             <div
               key={`${arrayIndex}-${idx}`}
-              className="w-40 h-40 md:w-52 md:h-52 flex-shrink-0 flex items-center justify-center p-6 bg-transparent relative"
+              className="w-32 h-32 md:w-40 md:h-40 flex-shrink-0 flex items-center justify-center p-4 bg-transparent relative"
             >
               <img
                 src={logo.src}
@@ -57,13 +57,13 @@ export default function MajorCustomers() {
   const row1 = allLogos.slice(0, half);
   const row2 = allLogos.slice(half);
   return (
-    <section className="bg-white pt-16 md:pt-20 pb-8 md:pb-10 overflow-hidden text-black block w-full relative">
-      <div className="container mx-auto px-6 md:px-12 mb-10 w-full text-center">
+    <section className="py-8 md:py-10 relative overflow-hidden bg-white text-black border-y border-black/5">
+      <div className="container mx-auto px-6 md:px-12 mb-6 w-full text-center">
         <motion.span
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-blue-600 font-bold text-[12px] md:text-[14px] tracking-[0.25em] uppercase mb-6 inline-block"
+          className="text-blue-600 font-bold text-[12px] md:text-[14px] tracking-[0.25em] uppercase mb-4 inline-block"
         >
           Trusted Partners
         </motion.span>
@@ -71,19 +71,19 @@ export default function MajorCustomers() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-black leading-[1.1] mb-6"
+          className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-black leading-[1.1] mb-4"
         >
           Powering the Arsenal <br />
           <span className="text-black/30 italic font-light tracking-tighter">of the Nation</span>
         </motion.h2>
       </div>
 
-      <div className="relative w-full overflow-hidden flex flex-col bg-transparent">
+      <div className="relative w-full overflow-hidden flex flex-col bg-transparent gap-2">
         <LogoTickerRow logos={row1} speed={25} />
         <LogoTickerRow logos={row2} speed={30} reverse={true} />
       </div>
 
-      <div className="flex justify-center mt-8 relative z-20">
+      <div className="flex justify-center mt-6 relative z-20">
         <div className="w-24 h-1 rounded-full overflow-hidden flex opacity-50">
           <div className="flex-1" style={{ backgroundColor: 'rgb(255, 103, 31)' }}></div>
           <div className="flex-1 bg-white"></div>

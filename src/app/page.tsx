@@ -13,6 +13,7 @@ import Hero from "@/components/sections/Hero";
 // Section Components - Dynamic for performance
 const MajorCustomers = dynamic(() => import("@/components/sections/MajorCustomers"), { ssr: true });
 const Expertise = dynamic(() => import("@/components/sections/Expertise"), { ssr: true });
+const CompanyOverview = dynamic(() => import("@/components/sections/CompanyOverview"), { ssr: true });
 
 const Projects = dynamic(() => import("@/components/sections/Projects"), { ssr: true });
 const Testimonials = dynamic(() => import("@/components/sections/Testimonials"), { ssr: true });
@@ -85,9 +86,12 @@ export default function Home() {
           <Expertise />
 
           {/* SERVICES SECTION */}
-          <Services />
+          {/* <Services /> */}
 
 
+
+          {/* COMPANY OVERVIEW SECTION */}
+          <CompanyOverview />
 
           {/* TESTIMONIALS SECTION */}
           <div id="testimonials">
