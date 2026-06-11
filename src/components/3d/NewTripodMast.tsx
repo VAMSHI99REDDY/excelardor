@@ -22,8 +22,16 @@ export default function NewTripodMast() {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xffffff);
 
+    const isMobile = window.innerWidth < 768;
+
     const camera = new THREE.PerspectiveCamera(35, container.clientWidth / container.clientHeight, 1, 5000);
-    camera.position.set(500, 400, 800);
+    
+    // Move the camera much closer on mobile so the mast appears large by default
+    if (isMobile) {
+      camera.position.set(250, 250, 400);
+    } else {
+      camera.position.set(500, 400, 800);
+    }
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -54,7 +62,7 @@ export default function NewTripodMast() {
     controls.minDistance = 200;
     controls.maxPolarAngle = Math.PI / 2 - 0.05;
     
-    const isMobile = window.innerWidth < 768;
+    // isMobile already declared above
 
     if (isMobile) {
       controls.enableRotate = false;
@@ -115,8 +123,11 @@ export default function NewTripodMast() {
     const modelGroup = new THREE.Group();
     hoverGroup.add(modelGroup);
 
-    const baseScale = isMobile ? 1.0 : 1.35;
+    const baseScale = isMobile ? 3.0 : 1.35;
     const scaleFactor = baseScale * (container.clientHeight / 500);
+
+    // Adjust target to center the scaled model properly
+    controls.target.set(0, 150 * (isMobile ? 1.5 : 1), 0);
 
     const mastSections: THREE.Group[] = [];
     const internalMastGroup = new THREE.Group();
@@ -290,8 +301,36 @@ export default function NewTripodMast() {
       container.addEventListener("touchmove", onTouchMove, { passive: true });
     }
 
-    controls.addEventListener("start", () => { autoRotate = false; });
-    controls.addEventListener("end", () => { autoRotate = true; });
+    // --- Mobile Zoom Logic ---
+    let targetDistance = camera.position.distanceTo(controls.target);
+    const zoomStep = 100;
+
+    const handleZoomIn = () => {
+      targetDistance = Math.max(controls.minDistance, targetDistance - zoomStep);
+    };
+    
+    const handleZoomOut = () => {
+      targetDistance = Math.min(controls.maxDistance, targetDistance + zoomStep);
+    };
+
+    container.addEventListener("zoom-in", handleZoomIn as EventListener);
+    container.addEventListener("zoom-out", handleZoomOut as EventListener);
+
+    controls.addEventListener("start", () => { 
+      autoRotate = false;
+      // sync targetDistance with user manual zoom
+      targetDistance = camera.position.distanceTo(controls.target);
+    });
+    controls.addEventListener("end", () => { 
+      autoRotate = true; 
+      targetDistance = camera.position.distanceTo(controls.target);
+    });
+    // Also sync during manual zoom
+    controls.addEventListener("change", () => {
+      if (!autoRotate) {
+        targetDistance = camera.position.distanceTo(controls.target);
+      }
+    });
 
     // --- 6. Animation Loop ---
     let isVisible = true;
@@ -310,16 +349,14 @@ export default function NewTripodMast() {
       const elapsed = clock.getElapsedTime();
       
       // Eased animation using sine wave for extension
-      // (Math.sin(...) + 1) / 2 creates a smooth 0 to 1 to 0 oscillation
       const extension = (Math.sin(elapsed * 1.2 - Math.PI / 2) + 1) / 2;
 
-      // Animate Sections (skip first one as it's the base of the telescopic part)
+      // Animate Sections
       for (let i = 1; i < numSections; i++) {
         mastSections[i].position.y = extension * (sectionHeight - overlap);
       }
 
-      // Animate Crank (rotate as mast extends/retracts)
-      // Derivative of extension dictates direction of crank rotation
+      // Animate Crank
       const crankSpeed = Math.cos(elapsed * 1.2 - Math.PI / 2);
       crankHandleGrp.rotation.x += crankSpeed * 0.2;
 
@@ -332,6 +369,14 @@ export default function NewTripodMast() {
       hoverGroup.rotation.y += (targetRotY - hoverGroup.rotation.y) * 0.05;
       hoverGroup.rotation.x += (targetRotX - hoverGroup.rotation.x) * 0.05;
 
+      // Smooth programmatic zoom
+      const currentDist = camera.position.distanceTo(controls.target);
+      if (Math.abs(currentDist - targetDistance) > 1) {
+        const newDist = THREE.MathUtils.lerp(currentDist, targetDistance, 0.1);
+        const dir = new THREE.Vector3().subVectors(camera.position, controls.target).normalize();
+        camera.position.copy(controls.target).add(dir.multiplyScalar(newDist));
+      }
+
       controls.update();
       renderer.render(scene, camera);
     };
@@ -341,17 +386,11 @@ export default function NewTripodMast() {
     // --- 7. Resize & Cleanup ---
     const handleResize = () => {
       if (!container) return;
-
       const width = container.clientWidth;
       const height = container.clientHeight;
       const aspect = width / height;
 
-      if (aspect < 1) {
-        camera.fov = 45; 
-      } else {
-        camera.fov = 35;
-      }
-
+      camera.fov = aspect < 1 ? 45 : 35;
       camera.aspect = aspect;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);
@@ -365,6 +404,8 @@ export default function NewTripodMast() {
       window.removeEventListener("resize", handleResize);
       container.removeEventListener("mousemove", onMouseMove);
       container.removeEventListener("touchmove", onTouchMove);
+      container.removeEventListener("zoom-in", handleZoomIn as EventListener);
+      container.removeEventListener("zoom-out", handleZoomOut as EventListener);
       observer.disconnect();
       renderer.dispose();
       pmremGenerator.dispose();
@@ -378,8 +419,26 @@ export default function NewTripodMast() {
   return (
     <div
       ref={mountRef}
-      className="w-full h-full relative z-20"
-      style={{ backgroundColor: '#ffffff' }}
-    />
+      className="w-full h-full relative z-20 group overflow-hidden"
+      style={{ backgroundColor: '#ffffff', touchAction: 'none' }}
+    >
+      {/* Zoom Controls for Mobile */}
+      <div className="absolute top-1/2 -translate-y-1/2 left-4 flex flex-col items-center justify-between md:hidden z-30 bg-[#f5f5f5] shadow-[0_2px_10px_rgba(0,0,0,0.1)] rounded-full w-10 h-56 py-1 border border-black/5">
+        <button
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); mountRef.current?.dispatchEvent(new CustomEvent("zoom-in")); }}
+          className="w-8 h-8 flex items-center justify-center rounded-full bg-[#707070] text-white active:scale-95 transition-transform text-xl font-light leading-none shadow-sm"
+          aria-label="Zoom In"
+        >
+          +
+        </button>
+        <button
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); mountRef.current?.dispatchEvent(new CustomEvent("zoom-out")); }}
+          className="w-8 h-8 flex items-center justify-center rounded-full bg-[#707070] text-white active:scale-95 transition-transform text-xl font-light leading-none shadow-sm"
+          aria-label="Zoom Out"
+        >
+          −
+        </button>
+      </div>
+    </div>
   );
 }

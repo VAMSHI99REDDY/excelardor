@@ -157,14 +157,14 @@ export default function Testimonials() {
             </p>
           </div>
 
-          <div className="flex flex-col items-center lg:items-end gap-8 shrink-0">
+          <div className="flex flex-col items-center lg:items-end gap-8 shrink-0 w-full lg:w-[50%]">
             {/* 3D Model Interactive Component */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="w-full h-[300px] md:h-[400px] lg:h-[450px] max-w-[300px] md:max-w-[350px] lg:max-w-[400px]"
+              className="w-full relative flex items-center justify-center h-[clamp(400px,75vh,800px)] min-h-[400px]"
             >
               <NewTripodMast />
             </motion.div>
