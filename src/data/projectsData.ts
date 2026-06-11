@@ -10,6 +10,14 @@ export type Project = {
     retractedHeight?: string;
     headLoad?: string;
     totalWeight?: string;
+    payloadCapacity?: string;
+    panRange?: string;
+    tiltRange?: string;
+    communication?: string;
+    protectionRating?: string;
+    powerSupply?: string;
+    operatingTemp?: string;
+    windRating?: string;
   };
 };
 
