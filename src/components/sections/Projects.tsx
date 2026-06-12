@@ -41,7 +41,7 @@ const ProjectCardItem = ({ card, idx, isMobile }: { card: CategoryCard; idx: num
   const isInView = useInView(ref, { margin: "-35% 0px -35% 0px", once: false });
 
   return (
-    <div ref={ref} className="relative aspect-[4/3] w-full">
+    <div ref={ref} className="relative aspect-[16/10] w-full">
       <motion.div
         initial={{ opacity: 0, y: 40, height: "100%" }}
         whileInView={isMobile ? undefined : { opacity: 1, y: 0, height: "100%" }}
@@ -131,8 +131,8 @@ const Projects = () => {
       </div>
 
       {/* Grid container */}
-      <div className="w-full relative z-10 px-6 md:px-12 container mx-auto mb-16 md:mb-0">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-16 sm:gap-6 md:gap-8">
+      <div className="w-full relative z-10 px-4 md:px-8 lg:px-12 max-w-[1600px] mx-auto mb-16 md:mb-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 sm:gap-8 md:gap-10">
           {CATEGORY_CARDS.map((card, idx) => (
             <ProjectCardItem key={idx} card={card} idx={idx} isMobile={isMobile} />
           ))}
