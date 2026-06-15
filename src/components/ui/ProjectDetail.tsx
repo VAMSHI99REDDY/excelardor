@@ -160,8 +160,8 @@ const ProjectDetail = ({ project }: ProjectDetailProps) => {
                       : "min-h-[300px] md:min-h-[400px]"
                       }`}
                     onClick={() => {
-                window.location.href = project.img;
-              }}
+                      window.location.href = project.img;
+                    }}
                   >
                     <motion.img
                       initial={{ scale: 0.9, opacity: 0 }}

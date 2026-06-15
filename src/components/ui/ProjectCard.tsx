@@ -30,7 +30,7 @@ const ProjectCard = ({ project, index }: ProjectCardProps) => {
         className="group relative rounded-[2rem] overflow-hidden cursor-pointer shadow-sm hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-500 bg-white flex flex-col h-full border border-black/5"
       >
         {/* Image Container */}
-        <motion.div 
+        <motion.div
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           className="relative w-full h-[240px] sm:h-[280px] md:h-[320px] overflow-hidden bg-white border-b border-black/5 cursor-zoom-in"
@@ -42,25 +42,22 @@ const ProjectCard = ({ project, index }: ProjectCardProps) => {
           <img
             src={project.img}
             alt={project.title}
-            className={`w-full h-full object-center transition-transform duration-700 ease-out group-hover:scale-105 ${
-              project.category === "Aerospace and Defence Components" || 
-              project.img.includes("DRDOProducts") ||
-              project.img.includes("5m_telescopic_mast") ||
-              project.img.includes("Inverted Telescopic Mast") ||
-              /plc operated article loading/i.test(project.img)
+            className={`w-full h-full object-center transition-transform duration-700 ease-out group-hover:scale-105 ${project.category === "Aerospace and Defence Components" ||
+                project.img.includes("DRDOProducts") ||
+                /plc operated article loading/i.test(project.img)
                 ? "object-cover"
                 : "object-contain"
-            }`}
+              }`}
           />
-          
+
           {/* Zoom Button Overlay */}
-          <div 
+          <div
             className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-black opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white hover:scale-110 active:scale-90 border border-black/5 shadow-sm"
             aria-label="Zoom Image"
           >
             <ZoomIn size={18} />
           </div>
-          
+
           {/* Hover Hint */}
           <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
             <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-[0.2em] px-4 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
@@ -79,7 +76,7 @@ const ProjectCard = ({ project, index }: ProjectCardProps) => {
               {project.category}
             </span>
           </div>
-          
+
           <p className="text-[13px] leading-relaxed mb-4 text-black/50 line-clamp-2">
             {project.description}
           </p>
@@ -92,7 +89,7 @@ const ProjectCard = ({ project, index }: ProjectCardProps) => {
         </div>
       </motion.div>
 
-      <ImageLightbox 
+      <ImageLightbox
         images={[{ src: project.img, alt: project.title }]}
         currentIndex={0}
         isOpen={isLightboxOpen}
