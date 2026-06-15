@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import Statistics from "./Statistics";
@@ -11,6 +12,8 @@ const TelescopicMast = dynamic(() => import("@/components/3d/TelescopicMast"), {
 });
 
 export default function Expertise() {
+  const router = useRouter();
+
   return (
     <section className="w-full bg-[#E9E5DF] py-12 md:py-16 flex flex-col items-center justify-center relative overflow-hidden text-black z-10 border-t border-black/5">
       {/* Premium subtle background glow */}
@@ -52,8 +55,32 @@ export default function Expertise() {
         <div className="flex flex-col md:flex-row items-center justify-between w-full gap-8">
 
           {/* LEFT: 3D Telescopic Mast Model */}
-          <div className="w-full md:w-1/2 flex justify-center relative h-[600px] md:h-[450px] order-2 md:order-1">
-            <TelescopicMast />
+          <div 
+            onClick={() => router.push("/mast-specifications")}
+            className="w-full md:w-1/2 flex justify-center items-center relative h-[600px] md:h-[450px] order-2 md:order-1 cursor-pointer group pointer-events-auto"
+          >
+            {/* Absolute overlay to intercept clicks and bypass WebGL canvas event capture */}
+            <div className="absolute inset-0 z-20 bg-transparent" />
+
+            <div className="w-full h-full pointer-events-none z-10">
+              <TelescopicMast />
+            </div>
+
+            {/* CLICK HERE vertical line indicator */}
+            <motion.div 
+              animate={{ y: [0, -6, 0] }}
+              transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+              className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 flex flex-col items-center select-none pointer-events-none z-30"
+            >
+              <div className="w-[1px] h-10 bg-blue-600/30 mb-2 group-hover:bg-blue-600 transition-colors duration-300" />
+              <div 
+                style={{ writingMode: "vertical-lr" }}
+                className="text-blue-600 font-extrabold text-[10px] md:text-xs tracking-[0.3em] uppercase select-none group-hover:text-blue-500 transition-colors duration-300"
+              >
+                Click Here
+              </div>
+              <div className="w-[1px] h-10 bg-blue-600/30 mt-2 group-hover:bg-blue-600 transition-colors duration-300" />
+            </motion.div>
           </div>
 
           {/* RIGHT: Bullet List block */}

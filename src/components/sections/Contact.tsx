@@ -129,26 +129,21 @@ export default function Contact() {
                 const phone = (form.elements.namedItem('phone') as HTMLInputElement).value;
                 const message = (form.elements.namedItem('message') as HTMLTextAreaElement).value;
 
-                const subject = `Application Requirements Inquiry - ${companyName || name}`;
-                const bodyText = `APPLICATION REQUIREMENTS INQUIRY\n` +
-                  `========================================\n` +
-                  `Company Name: ${companyName || 'N/A'}\n` +
-                  `How Did You Hear About Us?: ${hearAboutUs}\n` +
-                  `Industry: ${industry}\n` +
-                  `Application: ${application}\n` +
-                  `Required Mast Height: ${mastHeight}\n` +
-                  `Number of Devices: ${devicesCount}\n` +
-                  `Total Weight of Devices: ${devicesWeight}\n` +
-                  `----------------------------------------\n` +
-                  `CONTACT DETAILS\n` +
-                  `----------------------------------------\n` +
-                  `Name: ${name}\n` +
-                  `Email: ${email}\n` +
-                  `Phone: ${phone || 'N/A'}\n\n` +
-                  `Project Requirements / Message:\n${message}`;
+                const subject = "Application Requirements Inquiry";
+                const bodyText = `Company Name: ${companyName || 'N/A'}\n\n` +
+                  `How Did You Hear About Us: ${hearAboutUs}\n\n` +
+                  `Industry: ${industry}\n\n` +
+                  `Application: ${application}\n\n` +
+                  `Required Mast Height: ${mastHeight}\n\n` +
+                  `Number of Devices: ${devicesCount}\n\n` +
+                  `Total Device Weight: ${devicesWeight}\n\n` +
+                  `Name: ${name}\n\n` +
+                  `Email Address: ${email}\n\n` +
+                  `Phone Number: ${phone}\n\n` +
+                  `Project Requirements:\n${message}`;
 
-                const mailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=excelardor@gmail.com&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`;
-                window.open(mailUrl, '_blank', 'noopener,noreferrer');
+                const mailtoUrl = `mailto:excelardor@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`;
+                window.location.href = mailtoUrl;
               }}
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

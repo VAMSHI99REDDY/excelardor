@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 
 const Hero = () => {
   return (
-    <section className="relative min-h-[100vh] flex items-center justify-center overflow-hidden bg-transparent">
+    <section id="hero" className="relative min-h-[100vh] flex items-center justify-center overflow-hidden bg-transparent">
       {/* Floating orbs */}
       <div className="absolute top-1/4 left-[15%] w-72 h-72 bg-primary/8 rounded-full blur-[120px] animate-float pointer-events-none z-10" />
       <div

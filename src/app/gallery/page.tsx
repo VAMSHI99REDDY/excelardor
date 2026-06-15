@@ -55,8 +55,14 @@ export default function GalleryPage() {
   try {
     images = getImagesRecursively(publicDir, publicDir);
 
-    // Filter out unwanted image
-    images = images.filter(img => !img.src.toLowerCase().includes('contact us bg.png'));
+    // Filter out unwanted images
+    images = images.filter(img => {
+      const lower = img.src.toLowerCase();
+      if (lower.includes('contact us bg.png')) return false;
+      if (lower.includes('5m_telescopic_mast_app_1.png')) return false;
+      if (lower.endsWith('telescopic mast/5m_telescopic_mast.png')) return false;
+      return true;
+    });
 
     // Sort by requested category order
     const getCategoryIndex = (src: string) => {

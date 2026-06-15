@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Settings, FlaskConical, Quote } from "lucide-react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { Settings, FlaskConical, Quote, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import NewTripodMast from "@/components/3d/NewTripodMast";
 
@@ -94,10 +94,42 @@ const testEquipmentList = [
 
 export default function Testimonials() {
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const autoScrollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isHoveredRef = useRef(false);
 
   const toggleCategory = (category: string) => {
     setExpandedCategory(expandedCategory === category ? null : category);
   };
+
+  const CARD_WIDTH = typeof window !== "undefined" && window.innerWidth < 768 ? 320 + 24 : 360 + 24;
+
+  const scrollByCard = useCallback((direction: "left" | "right") => {
+    if (!scrollRef.current) return;
+    const amount = direction === "right" ? CARD_WIDTH : -CARD_WIDTH;
+    scrollRef.current.scrollBy({ left: amount, behavior: "smooth" });
+  }, [CARD_WIDTH]);
+
+  // Auto-scroll: advances one card every 3s, pauses on hover
+  useEffect(() => {
+    const startAutoScroll = () => {
+      autoScrollRef.current = setInterval(() => {
+        if (isHoveredRef.current || !scrollRef.current) return;
+        const el = scrollRef.current;
+        // If near the end, jump back to start seamlessly
+        if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 10) {
+          el.scrollTo({ left: 0, behavior: "smooth" });
+        } else {
+          el.scrollBy({ left: CARD_WIDTH, behavior: "smooth" });
+        }
+      }, 3000);
+    };
+
+    startAutoScroll();
+    return () => {
+      if (autoScrollRef.current) clearInterval(autoScrollRef.current);
+    };
+  }, [CARD_WIDTH]);
 
   const renderTable = (items: { id: number; name: string; qty: number }[], title?: string) => (
     <div className="w-full mt-8 flex flex-col">
@@ -208,27 +240,46 @@ export default function Testimonials() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.4 }}
-              className="w-full overflow-hidden pb-10 pt-4 relative group"
+              className="w-full pb-10 pt-4 relative"
             >
-              <style dangerouslySetInnerHTML={{
-                __html: `
-                @keyframes scroll-left {
-                  0% { transform: translateX(0); }
-                  100% { transform: translateX(-50%); }
-                }
-                .animate-scroll-left {
-                  animation: scroll-left 40s linear infinite;
-                }
-                .group:hover .animate-scroll-left {
-                  animation-play-state: paused;
-                }
-              `}} />
+              {/* ── Left Arrow ── */}
+              <button
+                aria-label="Previous team member"
+                onClick={() => scrollByCard("left")}
+                onMouseEnter={() => { isHoveredRef.current = true; }}
+                onMouseLeave={() => { isHoveredRef.current = false; }}
+                className="
+                  absolute left-0 top-1/2 -translate-y-1/2 z-20
+                  w-10 h-10 md:w-12 md:h-12
+                  flex items-center justify-center
+                  rounded-full bg-white border border-black/10
+                  shadow-[0_4px_20px_rgba(0,0,0,0.12)]
+                  text-black/60 hover:text-black
+                  hover:bg-black hover:text-white hover:border-black
+                  hover:shadow-[0_8px_28px_rgba(0,0,0,0.22)]
+                  active:scale-95
+                  transition-all duration-200 ease-out
+                  -translate-x-1 md:-translate-x-3
+                "
+              >
+                <ChevronLeft size={18} strokeWidth={2.5} />
+              </button>
 
-              <div className="flex w-max animate-scroll-left">
-                {[...TEAM, ...TEAM].map((member, idx) => (
+              {/* ── Cards Scroll Container ── */}
+              <style dangerouslySetInnerHTML={{ __html: `
+                .team-scroll::-webkit-scrollbar { display: none; }
+                .team-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+              `}} />
+              <div
+                ref={scrollRef}
+                className="team-scroll flex overflow-x-scroll gap-6 px-10 md:px-14 scroll-smooth"
+                onMouseEnter={() => { isHoveredRef.current = true; }}
+                onMouseLeave={() => { isHoveredRef.current = false; }}
+              >
+                {TEAM.map((member, idx) => (
                   <div
                     key={idx}
-                    className="mr-6 min-w-[320px] w-[320px] md:min-w-[360px] md:w-[360px] bg-[#F9F8F6] rounded-2xl p-8 border border-black/5 flex flex-col justify-between shrink-0 shadow-sm hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing"
+                    className="min-w-[300px] w-[300px] sm:min-w-[320px] sm:w-[320px] md:min-w-[360px] md:w-[360px] bg-[#F9F8F6] rounded-2xl p-8 border border-black/5 flex flex-col justify-between shrink-0 shadow-sm hover:shadow-md transition-shadow"
                   >
                     <div className="relative mb-10">
                       <Quote size={32} className="text-black/5 absolute -top-4 -left-2 rotate-180" />
@@ -257,6 +308,29 @@ export default function Testimonials() {
                   </div>
                 ))}
               </div>
+
+              {/* ── Right Arrow ── */}
+              <button
+                aria-label="Next team member"
+                onClick={() => scrollByCard("right")}
+                onMouseEnter={() => { isHoveredRef.current = true; }}
+                onMouseLeave={() => { isHoveredRef.current = false; }}
+                className="
+                  absolute right-0 top-1/2 -translate-y-1/2 z-20
+                  w-10 h-10 md:w-12 md:h-12
+                  flex items-center justify-center
+                  rounded-full bg-white border border-black/10
+                  shadow-[0_4px_20px_rgba(0,0,0,0.12)]
+                  text-black/60 hover:text-black
+                  hover:bg-black hover:text-white hover:border-black
+                  hover:shadow-[0_8px_28px_rgba(0,0,0,0.22)]
+                  active:scale-95
+                  transition-all duration-200 ease-out
+                  translate-x-1 md:translate-x-3
+                "
+              >
+                <ChevronRight size={18} strokeWidth={2.5} />
+              </button>
             </motion.div>
           )}
         </AnimatePresence>

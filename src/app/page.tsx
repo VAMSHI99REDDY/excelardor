@@ -83,7 +83,9 @@ export default function Home() {
           <MajorCustomers />
 
           {/* EXPERTISE SECTION */}
-          <Expertise />
+          <div id="expertise">
+            <Expertise />
+          </div>
 
           {/* SERVICES SECTION */}
           {/* <Services /> */}
