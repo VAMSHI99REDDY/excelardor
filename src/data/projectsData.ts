@@ -255,7 +255,7 @@ export const PROJECTS: Project[] = [
     title: "5m Telescopic Mast with Pan & Tilt",
     category: "Telescopic Mast",
     description: "5 m telescopic mast equipped with a pan & tilt system for versatile positioning.",
-    img: "/AllProjects/Telescopic Mast/5m Telescopic Mast with Pan & Tilt.png",
+    img: "/AllProjects/Telescopic Mast/5m_telescopic_mast.png",
     specs: {
       erectedHeight: "5.0 m",
       retractedHeight: "2.0 m",
@@ -372,9 +372,9 @@ export const PROJECTS: Project[] = [
     title: "Hydraulic Scissor Lift",
     category: "Industrial Hydraulics & SPM",
     description: "Precision-engineered scissor lifts, ranging from motorized (500 kg payload) to heavy-duty systems (10m height, 1-ton payload) for industrial lifting applications.",
-    img: "/AllProjects/Industrial Hydraulics & SPM Division/Heavy Duty Scissor Lifts & Hydraulics & Power packs3.png",
+    img: "/AllProjects/Industrial Hydraulics & SPM Division/EA-Heavy Duty Scissor Lifts & Hydraulics & Power packs2 (500 kg Payload).png",
     gallery: [
-      "/AllProjects/Industrial Hydraulics & SPM Division/Heavy Duty Scissor Lifts & Hydraulics & Power packs3.png",
+      "/AllProjects/Industrial Hydraulics & SPM Division/EA-Heavy Duty Scissor Lifts & Hydraulics & Power packs2 (500 kg Payload).png",
       "/AllProjects/Industrial Hydraulics & SPM Division/EA-Heavy Duty Scissor Lifts & Hydraulics & Power packs2 (500 kg Payload).png",
       "/AllProjects/Industrial Hydraulics & SPM Division/ea-heavy-duty-scissor-lift.png"
     ]
