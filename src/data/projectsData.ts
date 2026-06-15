@@ -255,7 +255,7 @@ export const PROJECTS: Project[] = [
     title: "5m Telescopic Mast with Pan & Tilt",
     category: "Telescopic Mast",
     description: "5 m telescopic mast equipped with a pan & tilt system for versatile positioning.",
-    img: "/AllProjects/Telescopic Mast/5m Telescopic Mast with Pan & Tilt.jpg",
+    img: "/AllProjects/Telescopic Mast/5m Telescopic Mast with Pan & Tilt.png",
     specs: {
       erectedHeight: "5.0 m",
       retractedHeight: "2.0 m",
@@ -337,7 +337,7 @@ export const PROJECTS: Project[] = [
     title: "Inverted Telescopic Mast (6m)",
     category: "Telescopic Mast",
     description: "Inverted Telescopic Mast (6m) for specialized installations.",
-    img: "/AllProjects/Telescopic Mast/Inverted Telescopic Mast – 6m.jpg",
+    img: "/AllProjects/Telescopic Mast/Inverted Telescopic Mast – 6m.png",
     specs: { erectedHeight: "6m", retractedHeight: "1.8m", headLoad: "30 Kg", totalWeight: "210 Kg" }
   },
   {
@@ -372,9 +372,9 @@ export const PROJECTS: Project[] = [
     title: "Hydraulic Scissor Lift",
     category: "Industrial Hydraulics & SPM",
     description: "Precision-engineered scissor lifts, ranging from motorized (500 kg payload) to heavy-duty systems (10m height, 1-ton payload) for industrial lifting applications.",
-    img: "/AllProjects/Industrial Hydraulics & SPM Division/Heavy Duty Scissor Lifts & Hydraulics & Power packs3.jpg",
+    img: "/AllProjects/Industrial Hydraulics & SPM Division/Heavy Duty Scissor Lifts & Hydraulics & Power packs3.png",
     gallery: [
-      "/AllProjects/Industrial Hydraulics & SPM Division/Heavy Duty Scissor Lifts & Hydraulics & Power packs3.jpg",
+      "/AllProjects/Industrial Hydraulics & SPM Division/Heavy Duty Scissor Lifts & Hydraulics & Power packs3.png",
       "/AllProjects/Industrial Hydraulics & SPM Division/EA-Heavy Duty Scissor Lifts & Hydraulics & Power packs2 (500 kg Payload).png",
       "/AllProjects/Industrial Hydraulics & SPM Division/ea-heavy-duty-scissor-lift.png"
     ]
