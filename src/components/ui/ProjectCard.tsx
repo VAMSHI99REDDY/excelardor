@@ -45,6 +45,8 @@ const ProjectCard = ({ project, index }: ProjectCardProps) => {
             className={`w-full h-full object-center transition-transform duration-700 ease-out group-hover:scale-105 ${
               project.category === "Aerospace and Defence Components" || 
               project.img.includes("DRDOProducts") ||
+              project.img.includes("5m_telescopic_mast") ||
+              project.img.includes("Inverted Telescopic Mast") ||
               /plc operated article loading/i.test(project.img)
                 ? "object-cover"
                 : "object-contain"
