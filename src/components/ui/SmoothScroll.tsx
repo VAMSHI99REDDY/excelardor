@@ -12,10 +12,12 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
   const lenisRef = useRef<Lenis | null>(null);
   const pathname = usePathname();
 
+  // Scroll to top on pathname (route) change
   useEffect(() => {
     if (lenisRef.current) {
-      // Instantly scroll to top on page transitions
       lenisRef.current.scrollTo(0, { immediate: true });
+    } else {
+      window.scrollTo(0, 0);
     }
   }, [pathname]);
 
