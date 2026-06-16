@@ -43,7 +43,9 @@ const ProjectCard = ({ project, index }: ProjectCardProps) => {
             src={project.img}
             alt={project.title}
             className={`w-full h-full object-center transition-transform duration-700 ease-out group-hover:scale-105 ${project.category === "Aerospace and Defence Components" ||
+                project.category === "Industrial Hydraulics & SPM" ||
                 project.img.includes("DRDOProducts") ||
+                project.img.includes("Industrial Hydraulics & SPM Division") ||
                 /plc operated article loading/i.test(project.img)
                 ? "object-cover"
                 : "object-contain"

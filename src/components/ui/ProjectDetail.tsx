@@ -169,7 +169,7 @@ const ProjectDetail = ({ project }: ProjectDetailProps) => {
                       transition={{ duration: 0.8 }}
                       src={project.img}
                       alt={project.title}
-                      className={`object-center transition-transform duration-700 group-hover:scale-105 ${project.category === "Aerospace and Defence Components" || project.img.includes("DRDOProducts") || /plc operated article loading/i.test(project.img)
+                      className={`object-center transition-transform duration-700 group-hover:scale-105 ${project.category === "Aerospace and Defence Components" || project.category === "Industrial Hydraulics & SPM" || project.img.includes("DRDOProducts") || project.img.includes("Industrial Hydraulics & SPM Division") || /plc operated article loading/i.test(project.img)
                         ? "w-full h-full object-cover"
                         : "max-w-full max-h-full object-contain"
                         }`}
