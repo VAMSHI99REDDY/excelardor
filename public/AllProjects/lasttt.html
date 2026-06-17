@@ -335,7 +335,7 @@ cv.addEventListener('touchmove',  e=>{
   prevMouse={x:e.touches[0].clientX,y:e.touches[0].clientY}; updateCam();
 });
 
-window.addEventListener('resize',()=>{
+function resize() {
   const w = window.innerWidth;
   const h = window.innerHeight;
   cam.aspect=w/h;
@@ -349,7 +349,12 @@ window.addEventListener('resize',()=>{
   cam.updateProjectionMatrix();
   renderer.setSize(w,h);
   updateCam();
-});
+}
+window.addEventListener('resize', resize);
+if (typeof ResizeObserver !== 'undefined') {
+  new ResizeObserver(resize).observe(document.body);
+}
+setTimeout(resize, 300);
 
 function toggleAuto(){ autoRot=!autoRot; }
 function resetView(){ camSph={th:0.38,ph:1.13,r:13.0}; autoRot=true; updateCam(); }

@@ -462,7 +462,7 @@ el.addEventListener('touchmove',e=>{
   applyCam();
 });
 
-window.addEventListener('resize',()=>{
+function resize() {
   const w = window.innerWidth;
   const h = window.innerHeight;
   camera.aspect=w/h;
@@ -476,7 +476,12 @@ window.addEventListener('resize',()=>{
   camera.updateProjectionMatrix();
   renderer.setSize(w,h);
   applyCam();
-});
+}
+window.addEventListener('resize', resize);
+if (typeof ResizeObserver !== 'undefined') {
+  new ResizeObserver(resize).observe(document.body);
+}
+setTimeout(resize, 300);
 
 // ─── AUTO ROTATION (LIKE CAD MODEL) ─────────────────────────────────
 let autoRotate = true;

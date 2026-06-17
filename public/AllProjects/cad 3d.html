@@ -123,6 +123,10 @@ function resize(){
   camera.updateProjectionMatrix();
 }
 resize(); window.addEventListener('resize',resize);
+if (typeof ResizeObserver !== 'undefined') {
+  new ResizeObserver(resize).observe(document.body);
+}
+setTimeout(resize, 300);
 canvas.style.touchAction = 'none';
 
 // ─── Lighting ───

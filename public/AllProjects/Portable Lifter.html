@@ -320,19 +320,24 @@ el.addEventListener('touchmove',e=>{
   sph.theta-=dx*0.007;sph.phi=Math.max(0.12,Math.min(1.5,sph.phi-dy*0.007));
   updateCam();
 });
-window.addEventListener('resize',()=>{
+function resize() {
   const w = window.innerWidth;
   const h = window.innerHeight;
   camera.aspect=w/h;
-    if (w < h) {
+  if (w < h) {
     sph.r = 30; // Zoom out for portrait
   } else {
     sph.r = 20;
   }
-    camera.updateProjectionMatrix();
+  camera.updateProjectionMatrix();
   renderer.setSize(w,h);
   updateCam();
-});
+}
+window.addEventListener('resize', resize);
+if (typeof ResizeObserver !== 'undefined') {
+  new ResizeObserver(resize).observe(document.body);
+}
+setTimeout(resize, 300);
 (function loop(){requestAnimationFrame(loop);if(autoRotate){sph.theta+=0.006;updateCam();}renderer.render(scene,camera);})();
 </script>
 </body>

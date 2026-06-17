@@ -745,7 +745,7 @@
   }, { passive: true });
 
   // Resize
-  window.addEventListener("resize", () => {
+  function resize() {
     const w = window.innerWidth;
     const h = window.innerHeight;
     camera.aspect = w / h;
@@ -759,7 +759,12 @@
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
     applyCamera();
-  });
+  }
+  window.addEventListener("resize", resize);
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(resize).observe(document.body);
+  }
+  setTimeout(resize, 300);
 
   // ============================================================
   // ANIMATION LOOP
