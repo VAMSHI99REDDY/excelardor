@@ -28,12 +28,12 @@ const ProjectDetail = ({ project }: ProjectDetailProps) => {
 
   // Mapping special CAD projects to their respective HTML viewers
   const CAD_VIEWERS: Record<number, string> = {
-    1: "/AllProjects/Counterpoise Earthing System 3d cad.html",
-    2: "/AllProjects/cad 3d.html",
-    3: "/AllProjects/Solvent Extraction Plant Layout.html",
-    4: "/AllProjects/Portable Lifter.html",
+    1: "/AllProjects/Counterpoise%20Earthing%20System%203d%20cad.html",
+    2: "/AllProjects/cad%203d.html",
+    3: "/AllProjects/Solvent%20Extraction%20Plant%20Layout.html",
+    4: "/AllProjects/Portable%20Lifter.html",
     5: "/AllProjects/lasttt.html",
-    6: "/AllProjects/Pneumatic Press Attachment 3d.html",
+    6: "/AllProjects/Pneumatic%20Press%20Attachment%203d.html",
   };
 
   const isSpecialCAD = !!CAD_VIEWERS[project.id];
