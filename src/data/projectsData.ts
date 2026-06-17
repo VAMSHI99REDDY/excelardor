@@ -424,7 +424,7 @@ export const PROJECTS: Project[] = [
     title: "Hydraulic Power Pack",
     category: "Industrial Hydraulics & SPM",
     description: "Power unit used to drive hydraulic systems efficiently.",
-    img: "/AllProjects/Industrial Hydraulics & SPM Division/Hydraulic Power Pack.jpg"
+    img: "/AllProjects/Industrial Hydraulics & SPM Division/Hydraulic Power Pack.png"
   },
   {
     id: 312,

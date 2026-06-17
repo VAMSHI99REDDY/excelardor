@@ -161,6 +161,7 @@ const CategoryRow = ({ title, projects }: { title: string, projects: Project[] }
 const ProjectsPage = () => {
   const [activeCategory, setActiveCategory] = useState<string>("Show All");
   const [compact, setCompact] = useState(false);
+  const scrollRestoredRef = useRef(false);
 
   // Category counts
   const counts = useMemo(() => {
@@ -176,6 +177,58 @@ const ProjectsPage = () => {
     if (activeCategory === "Show All") return PROJECTS;
     return PROJECTS.filter(p => p.category === activeCategory);
   }, [activeCategory]);
+
+  // Read category from URL search params on mount and on popstate
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const category = params.get("category") || "Show All";
+      setActiveCategory(category);
+    };
+
+    handlePopState(); // Initialize on mount
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
+  // Restore scroll position after activeCategory updates
+  useEffect(() => {
+    if (scrollRestoredRef.current) return;
+
+    const savedScroll = sessionStorage.getItem("projects_scroll_position");
+    if (savedScroll) {
+      const targetScroll = parseInt(savedScroll, 10);
+      if (!isNaN(targetScroll)) {
+        const timer = setTimeout(() => {
+          window.scrollTo({ top: targetScroll, behavior: "instant" as ScrollBehavior });
+          sessionStorage.removeItem("projects_scroll_position");
+          scrollRestoredRef.current = true;
+        }, 150);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [activeCategory]);
+
+  // Sync category change to URL search params
+  const handleCategoryChange = (category: string) => {
+    setActiveCategory(category);
+    const params = new URLSearchParams(window.location.search);
+    if (category === "Show All") {
+      params.delete("category");
+    } else {
+      params.set("category", category);
+    }
+    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+
+    const currentParams = new URLSearchParams(window.location.search);
+    const currentCategory = currentParams.get("category") || "Show All";
+    if (currentCategory !== category) {
+      window.history.pushState({ category }, "", newUrl);
+    }
+  };
 
   useEffect(() => {
     const hash = typeof window !== "undefined" ? window.location.hash : "";
@@ -208,7 +261,7 @@ const ProjectsPage = () => {
         <section className="py-4 md:py-6 bg-white border-b border-black/5">
           <div className="container mx-auto px-4 md:px-12 flex flex-col items-center gap-4">
             <div className="w-full flex justify-center">
-              <CategoryFilter active={activeCategory} onChange={setActiveCategory} counts={counts} />
+              <CategoryFilter active={activeCategory} onChange={handleCategoryChange} counts={counts} />
             </div>
             <div className="flex w-full items-center justify-between pt-2">
               <button onClick={() => setCompact(!compact)} className="flex items-center gap-2 text-black/40 hover:text-black p-2 -ml-2 rounded-lg cursor-pointer active:scale-95 transition-all">

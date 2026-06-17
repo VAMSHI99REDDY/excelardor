@@ -25,6 +25,10 @@ const ProjectCard = ({ project, index }: ProjectCardProps) => {
         exit={{ opacity: 0, y: 16, scale: 0.97 }}
         transition={{ duration: 0.45, delay: index * 0.04, ease: [0.16, 1, 0.3, 1] }}
         onTap={() => {
+          if (typeof window !== "undefined") {
+            sessionStorage.setItem("projects_scroll_position", window.scrollY.toString());
+            sessionStorage.setItem("projects_last_search", window.location.search);
+          }
           router.push(`/projects/${project.id}`);
         }}
         className="group relative rounded-[2rem] overflow-hidden cursor-pointer shadow-sm hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-500 bg-white flex flex-col h-full border border-black/5"
@@ -46,6 +50,7 @@ const ProjectCard = ({ project, index }: ProjectCardProps) => {
                 project.category === "Industrial Hydraulics & SPM" ||
                 project.img.includes("DRDOProducts") ||
                 project.img.includes("Industrial Hydraulics & SPM Division") ||
+                project.img.includes("Rope Drive Mast") ||
                 /plc operated article loading/i.test(project.img)
                 ? "object-cover"
                 : "object-contain"

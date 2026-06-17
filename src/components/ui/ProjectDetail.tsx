@@ -6,7 +6,7 @@ import { ArrowLeft, ChevronRight, ZoomIn } from "lucide-react";
 import Link from "next/link";
 import type { Project } from "@/data/projectsData";
 import ImageLightbox from "./ImageLightbox";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface ProjectDetailProps {
   project: Project;
@@ -15,6 +15,16 @@ interface ProjectDetailProps {
 const ProjectDetail = ({ project }: ProjectDetailProps) => {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [backUrl, setBackUrl] = useState("/projects");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const lastSearch = sessionStorage.getItem("projects_last_search");
+      if (lastSearch) {
+        setBackUrl(`/projects${lastSearch}`);
+      }
+    }
+  }, []);
 
   // Mapping special CAD projects to their respective HTML viewers
   const CAD_VIEWERS: Record<number, string> = {
@@ -92,7 +102,7 @@ const ProjectDetail = ({ project }: ProjectDetailProps) => {
             <div className="flex flex-col lg:flex-row gap-16 md:gap-24">
               <div className="w-full lg:w-1/3 xl:w-1/4">
                 <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="md:sticky md:top-32">
-                  <Link href="/projects" className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-all mb-12 group p-2 -ml-2 rounded-lg active:scale-95 hover:bg-white/5">
+                  <Link href={backUrl} className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-all mb-12 group p-2 -ml-2 rounded-lg active:scale-95 hover:bg-white/5">
                     <ArrowLeft size={18} className="transition-transform group-hover:-translate-x-1" />
                     <span className="text-xs font-bold uppercase tracking-[0.2em]">Back to Projects</span>
                   </Link>
@@ -137,7 +147,7 @@ const ProjectDetail = ({ project }: ProjectDetailProps) => {
         <div className="bg-white min-h-screen">
           {/* Top Navigation Bar */}
           <div className="container mx-auto px-6 md:px-12 py-8 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.3em] text-black/40 border-b border-black/5">
-            <Link href="/projects" className="flex items-center gap-2 text-black/60 hover:text-black transition-all group p-2 -ml-2 rounded-lg active:scale-95 hover:bg-black/5">
+            <Link href={backUrl} className="flex items-center gap-2 text-black/60 hover:text-black transition-all group p-2 -ml-2 rounded-lg active:scale-95 hover:bg-black/5">
               <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
               <span className="font-bold">Back to Projects</span>
             </Link>
@@ -205,7 +215,7 @@ const ProjectDetail = ({ project }: ProjectDetailProps) => {
                       <p className="text-sm font-bold tracking-tight uppercase text-black/60">{project.category}</p>
                     </div>
 
-                    <Link href="/projects" className="inline-flex items-center gap-3 text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-blue-600 hover:text-black transition-all group active:scale-95 p-2 -ml-2 rounded-xl">
+                    <Link href={backUrl} className="inline-flex items-center gap-3 text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-blue-600 hover:text-black transition-all group active:scale-95 p-2 -ml-2 rounded-xl">
                       <div className="w-8 h-8 rounded-full border border-blue-600/20 flex items-center justify-center transition-all group-hover:bg-black group-hover:border-black group-hover:text-white">
                         <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-1" />
                       </div>
