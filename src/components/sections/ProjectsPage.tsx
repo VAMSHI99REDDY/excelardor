@@ -161,6 +161,7 @@ const CategoryRow = ({ title, projects }: { title: string, projects: Project[] }
 const ProjectsPage = () => {
   const [activeCategory, setActiveCategory] = useState<string>("Show All");
   const [compact, setCompact] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const scrollRestoredRef = useRef(false);
 
   // Category counts
@@ -178,7 +179,25 @@ const ProjectsPage = () => {
     return PROJECTS.filter(p => p.category === activeCategory);
   }, [activeCategory]);
 
-  // Read category from URL search params on mount and on popstate
+  // Read category and restore scroll position synchronously on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const category = params.get("category") || "Show All";
+    setActiveCategory(category);
+
+    const savedScroll = sessionStorage.getItem("projects_scroll_position");
+    if (savedScroll) {
+      const targetScroll = parseInt(savedScroll, 10);
+      if (!isNaN(targetScroll)) {
+        window.scrollTo(0, targetScroll);
+        sessionStorage.removeItem("projects_scroll_position");
+        scrollRestoredRef.current = true;
+      }
+    }
+    setMounted(true);
+  }, []);
+
+  // Handle popstate for browser Back/Forward navigation
   useEffect(() => {
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
@@ -186,31 +205,11 @@ const ProjectsPage = () => {
       setActiveCategory(category);
     };
 
-    handlePopState(); // Initialize on mount
-
     window.addEventListener("popstate", handlePopState);
     return () => {
       window.removeEventListener("popstate", handlePopState);
     };
   }, []);
-
-  // Restore scroll position after activeCategory updates
-  useEffect(() => {
-    if (scrollRestoredRef.current) return;
-
-    const savedScroll = sessionStorage.getItem("projects_scroll_position");
-    if (savedScroll) {
-      const targetScroll = parseInt(savedScroll, 10);
-      if (!isNaN(targetScroll)) {
-        const timer = setTimeout(() => {
-          window.scrollTo({ top: targetScroll, behavior: "instant" as ScrollBehavior });
-          sessionStorage.removeItem("projects_scroll_position");
-          scrollRestoredRef.current = true;
-        }, 150);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [activeCategory]);
 
   // Sync category change to URL search params
   const handleCategoryChange = (category: string) => {
@@ -255,7 +254,10 @@ const ProjectsPage = () => {
   }, []);
 
   return (
-    <main className="min-h-screen text-black font-sans relative bg-[#E9E5DF]">
+    <main
+      className="min-h-screen text-black font-sans relative bg-[#E9E5DF] transition-opacity duration-150"
+      style={{ opacity: mounted ? 1 : 0 }}
+    >
       <div className="relative z-20 bg-white min-h-screen flex flex-col pt-20 md:pt-24">
         {/* Compact Filter Section */}
         <section className="py-4 md:py-6 bg-white border-b border-black/5">
