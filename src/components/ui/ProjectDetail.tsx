@@ -37,7 +37,26 @@ const ProjectDetail = ({ project }: ProjectDetailProps) => {
   };
 
   const isSpecialCAD = !!CAD_VIEWERS[project.id];
-  const cadSrc = CAD_VIEWERS[project.id];
+  const [cadSrc, setCadSrc] = useState(CAD_VIEWERS[project.id] || "");
+
+  useEffect(() => {
+    if (project.id && CAD_VIEWERS[project.id]) {
+      const originalSrc = CAD_VIEWERS[project.id];
+      const hostname = window.location.hostname;
+      const isLocal =
+        hostname === "localhost" ||
+        hostname === "127.0.0.1" ||
+        hostname.startsWith("192.168.") ||
+        hostname.startsWith("10.") ||
+        hostname.startsWith("172.");
+      
+      if (!isLocal) {
+        setCadSrc(originalSrc.replace(/\.html$/, ""));
+      } else {
+        setCadSrc(originalSrc);
+      }
+    }
+  }, [project.id]);
 
   return (
     <motion.div
