@@ -6,7 +6,7 @@ import { MapPin, Phone, Mail, Building, Clock } from "lucide-react";
 
 export default function Contact() {
   return (
-    <section className="relative w-full pt-20 pb-20 bg-[#BEBEB8] flex flex-col items-center">
+    <section className="relative w-full pt-20 pb-20 bg-white flex flex-col items-center">
       <div className="container mx-auto px-6 md:px-12">
         {/* Contact Information & Form Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 xl:gap-16 items-start">
@@ -16,7 +16,7 @@ export default function Contact() {
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-            className="bg-white rounded-3xl p-6 sm:p-8 md:p-12 shadow-[0_4px_30px_rgba(0,0,0,0.05)] w-full"
+            className="bg-white rounded-3xl p-6 sm:p-8 md:p-12 shadow-[0_15px_50px_rgba(0,0,0,0.25)] border border-black/[0.03] w-full"
           >
             <h3 className="text-2xl font-bold text-black mb-8 border-b border-black/10 pb-4">
               Contact Details
@@ -105,7 +105,7 @@ export default function Contact() {
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-            className="bg-white rounded-3xl p-6 sm:p-8 md:p-12 shadow-[0_4px_30px_rgba(0,0,0,0.05)] w-full"
+            className="bg-white rounded-3xl p-6 sm:p-8 md:p-12 shadow-[0_15px_50px_rgba(0,0,0,0.25)] border border-black/[0.03] w-full"
           >
             <h3 className="text-2xl font-bold text-black mb-8 border-b border-black/10 pb-4 uppercase tracking-wider">
               Application Requirements Form
@@ -376,7 +376,7 @@ export default function Contact() {
         transition={{ duration: 0.8, delay: 0.4 }}
         className="container mx-auto px-6 md:px-12 mt-16 w-full group"
       >
-        <div className="relative w-full h-[450px] md:h-[500px] rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white/50 group-hover:border-white transition-all duration-500">
+        <div className="relative w-full h-[450px] md:h-[500px] rounded-[2rem] overflow-hidden shadow-2xl border border-black/5 group-hover:border-black/10 transition-all duration-500">
           {/* Real Interactive Map */}
           <iframe
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3804.83615560934!2d78.4385714!3d17.5316619!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bcb8f00736fca55%3A0xb4fbaa45456cb7a5!2sExcel%20Ardor%20Private%20Limited!5e0!3m2!1sen!2sin!4v1714995000000!5m2!1sen!2sin"

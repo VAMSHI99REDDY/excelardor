@@ -7,7 +7,7 @@ import Contact from "@/components/sections/Contact";
 
 export default function ContactPage() {
   return (
-    <main className="relative min-h-screen font-sans text-black overflow-hidden bg-[#BEBEB8]">
+    <main className="relative min-h-screen font-sans text-black overflow-hidden bg-white">
 
       {/* Full-screen Hero Section */}
         <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
@@ -66,7 +66,7 @@ export default function ContactPage() {
         </section>
 
         {/* Content Section */}
-        <div className="relative z-10 bg-[#BEBEB8]">
+        <div className="relative z-10 bg-white">
           <Contact />
         </div>
 
