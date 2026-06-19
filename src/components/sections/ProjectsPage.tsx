@@ -3,7 +3,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { motion, useMotionValue, animate, useInView } from "framer-motion";
-import { Grid3X3, LayoutGrid, Search, ArrowLeft, ArrowRight } from "lucide-react";
+import { Search, ArrowLeft, ArrowRight } from "lucide-react";
 import { PROJECTS } from "@/data/projectsData";
 import ProjectCard from "@/components/ui/ProjectCard";
 import CategoryFilter from "@/components/ui/CategoryFilter";
@@ -160,7 +160,6 @@ const CategoryRow = ({ title, projects }: { title: string, projects: Project[] }
 
 const ProjectsPage = () => {
   const [activeCategory, setActiveCategory] = useState<string>("Show All");
-  const [compact, setCompact] = useState(false);
   const [mounted, setMounted] = useState(false);
   const scrollRestoredRef = useRef(false);
 
@@ -265,11 +264,7 @@ const ProjectsPage = () => {
             <div className="w-full flex justify-center">
               <CategoryFilter active={activeCategory} onChange={handleCategoryChange} counts={counts} />
             </div>
-            <div className="flex w-full items-center justify-between pt-2">
-              <button onClick={() => setCompact(!compact)} className="flex items-center gap-2 text-black/40 hover:text-black p-2 -ml-2 rounded-lg cursor-pointer active:scale-95 transition-all">
-                {compact ? <Grid3X3 size={12} /> : <LayoutGrid size={12} />}
-                <span className="text-[8px] font-bold uppercase tracking-widest">{compact ? "Compact" : "Grid"}</span>
-              </button>
+            <div className="flex w-full items-center justify-end pt-2">
               <div className="flex items-center gap-4">
                 <button className="text-black/40 hover:text-black">
                   <Search size={16} />
