@@ -51,8 +51,8 @@ export default function Contact() {
         console.error("Email sending failed", result);
         setStatusType("error");
       }
-    } catch (error) {
-      console.error("Email sending failed", error);
+    } catch (error: any) {
+      console.error("Email sending crashed or returned invalid JSON:", error);
       setStatusType("error");
     } finally {
       setIsSubmitting(false);

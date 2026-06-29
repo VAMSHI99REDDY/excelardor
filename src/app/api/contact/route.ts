@@ -165,7 +165,11 @@ export async function POST(request: Request) {
     console.error("================================");
     
     return NextResponse.json(
-      { success: false, message: 'Failed to send inquiry.' },
+      { 
+        success: false, 
+        message: 'Failed to send inquiry.', 
+        errorDetails: error?.message || String(error)
+      },
       { status: 500 }
     );
   }
