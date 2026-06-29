@@ -1,10 +1,65 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Phone, Mail, Building, Clock } from "lucide-react";
+import { MapPin, Phone, Mail, Building, Clock, Loader2 } from "lucide-react";
 
 export default function Contact() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [statusType, setStatusType] = useState<"success" | "error" | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setStatusMessage("");
+    setStatusType(null);
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    
+    const data = {
+      companyName: formData.get('companyName'),
+      hearAboutUs: formData.get('hearAboutUs'),
+      industry: formData.get('industry'),
+      application: formData.get('application'),
+      mastHeight: formData.get('mastHeight'),
+      devicesCount: formData.get('devicesCount'),
+      devicesWeight: formData.get('devicesWeight'),
+      name: formData.get('name'),
+      email: formData.get('email'),
+      phone: formData.get('phone'),
+      message: formData.get('message'),
+    };
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setStatusType("success");
+        setStatusMessage("Thank you! Your inquiry has been submitted successfully. We'll get back to you shortly.");
+        form.reset();
+      } else {
+        setStatusType("error");
+        setStatusMessage(result.message || "Something went wrong. Please try again.");
+      }
+    } catch (error) {
+      console.error("Form submission error:", error);
+      setStatusType("error");
+      setStatusMessage("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <section className="relative w-full pt-20 pb-20 bg-white flex flex-col items-center">
       <div className="container mx-auto px-6 md:px-12">
@@ -113,39 +168,13 @@ export default function Contact() {
 
             <form
               className="flex flex-col gap-6"
-              onSubmit={(e) => {
-                e.preventDefault();
-                const form = e.currentTarget;
-                
-                const companyName = (form.elements.namedItem('companyName') as HTMLInputElement).value;
-                const hearAboutUs = (form.elements.namedItem('hearAboutUs') as HTMLSelectElement).value;
-                const industry = (form.elements.namedItem('industry') as HTMLSelectElement).value;
-                const application = (form.elements.namedItem('application') as HTMLSelectElement).value;
-                const mastHeight = (form.elements.namedItem('mastHeight') as HTMLSelectElement).value;
-                const devicesCount = (form.elements.namedItem('devicesCount') as HTMLSelectElement).value;
-                const devicesWeight = (form.elements.namedItem('devicesWeight') as HTMLSelectElement).value;
-                const name = (form.elements.namedItem('name') as HTMLInputElement).value;
-                const email = (form.elements.namedItem('email') as HTMLInputElement).value;
-                const phone = (form.elements.namedItem('phone') as HTMLInputElement).value;
-                const message = (form.elements.namedItem('message') as HTMLTextAreaElement).value;
-
-                const subject = "Application Requirements Inquiry";
-                const bodyText = `Company Name: ${companyName || 'N/A'}\n\n` +
-                  `How Did You Hear About Us: ${hearAboutUs}\n\n` +
-                  `Industry: ${industry}\n\n` +
-                  `Application: ${application}\n\n` +
-                  `Required Mast Height: ${mastHeight}\n\n` +
-                  `Number of Devices: ${devicesCount}\n\n` +
-                  `Total Device Weight: ${devicesWeight}\n\n` +
-                  `Name: ${name}\n\n` +
-                  `Email Address: ${email}\n\n` +
-                  `Phone Number: ${phone}\n\n` +
-                  `Project Requirements:\n${message}`;
-
-                const mailtoUrl = `mailto:excelardor@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`;
-                window.location.href = mailtoUrl;
-              }}
+              onSubmit={handleSubmit}
             >
+              {statusMessage && (
+                <div className={`p-4 rounded-xl text-sm font-medium ${statusType === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                  {statusMessage}
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Company Name */}
                 <div>
@@ -358,9 +387,17 @@ export default function Contact() {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="mt-4 w-full bg-blue-600 hover:bg-black text-white px-10 py-4.5 rounded-xl font-bold tracking-widest uppercase hover:scale-[1.01] hover:-translate-y-0.5 transition-all duration-300 active:scale-95 shadow-lg shadow-blue-600/20"
+                disabled={isSubmitting}
+                className="mt-4 w-full bg-blue-600 hover:bg-black text-white px-10 py-4.5 rounded-xl font-bold tracking-widest uppercase hover:scale-[1.01] hover:-translate-y-0.5 transition-all duration-300 active:scale-95 shadow-lg shadow-blue-600/20 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:translate-y-0 flex items-center justify-center gap-2"
               >
-                Submit Inquiry
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit Inquiry"
+                )}
               </button>
             </form>
           </motion.div>
