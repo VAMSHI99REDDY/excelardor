@@ -6,57 +6,75 @@ import { MapPin, Phone, Mail, Building, Clock, Loader2 } from "lucide-react";
 
 export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [statusMessage, setStatusMessage] = useState("");
-  const [statusType, setStatusType] = useState<"success" | "error" | null>(null);
+  const [statusType, setStatusType] = useState<"success" | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setStatusMessage("");
     setStatusType(null);
 
     const form = e.currentTarget;
     const formData = new FormData(form);
     
-    const data = {
-      companyName: formData.get('companyName'),
-      hearAboutUs: formData.get('hearAboutUs'),
-      industry: formData.get('industry'),
-      application: formData.get('application'),
-      mastHeight: formData.get('mastHeight'),
-      devicesCount: formData.get('devicesCount'),
-      devicesWeight: formData.get('devicesWeight'),
-      name: formData.get('name'),
-      email: formData.get('email'),
-      phone: formData.get('phone'),
-      message: formData.get('message'),
-    };
+    const companyName = formData.get('companyName') as string || 'N/A';
+    const hearAboutUs = formData.get('hearAboutUs') as string || '';
+    const industry = formData.get('industry') as string || '';
+    const application = formData.get('application') as string || '';
+    const mastHeight = formData.get('mastHeight') as string || '';
+    const devicesCount = formData.get('devicesCount') as string || '';
+    const devicesWeight = formData.get('devicesWeight') as string || '';
+    const name = formData.get('name') as string || '';
+    const email = formData.get('email') as string || '';
+    const phone = formData.get('phone') as string || '';
+    const message = formData.get('message') as string || '';
 
-    try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+    const subject = `New Application Inquiry - ${companyName !== 'N/A' ? companyName : name}`;
+    
+    const body = `New Application Inquiry
 
-      const result = await response.json();
+Company Name:
+${companyName}
 
-      if (response.ok) {
-        console.log("Email sent successfully", result);
-        setStatusType("success");
-        form.reset();
-      } else {
-        console.error("Email sending failed", result);
-        setStatusType("error");
-      }
-    } catch (error: any) {
-      console.error("Email sending crashed or returned invalid JSON:", error);
-      setStatusType("error");
-    } finally {
-      setIsSubmitting(false);
-    }
+How Did You Hear About Us:
+${hearAboutUs}
+
+Industry:
+${industry}
+
+Application:
+${application}
+
+Required Mast Height:
+${mastHeight}
+
+Number of Devices:
+${devicesCount}
+
+Total Weight:
+${devicesWeight}
+
+Contact Person:
+${name}
+
+Email:
+${email}
+
+Phone:
+${phone}
+
+Project Requirements:
+
+${message}
+
+Submitted On:
+${new Date().toLocaleString()}`;
+
+    const mailtoLink = `mailto:bhaskarvamshi99@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    
+    window.location.href = mailtoLink;
+    
+    setStatusType("success");
+    setIsSubmitting(false);
   };
 
   return (
@@ -170,23 +188,12 @@ export default function Contact() {
               onSubmit={handleSubmit}
             >
               {statusType === 'success' && (
-                <div className="p-6 rounded-xl text-sm font-medium bg-green-50 text-green-700 border border-green-200">
+                <div className="p-6 rounded-xl text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200">
                   <h4 className="text-lg font-bold mb-2 flex items-center gap-2">
-                    ✅ Inquiry Submitted Successfully!
+                    ✉️ Email Application Opened
                   </h4>
-                  <p className="mb-2">Thank you for contacting Sharada Associates.</p>
-                  <p className="mb-2">Your inquiry has been successfully sent.</p>
-                  <p>Our team will contact you shortly.</p>
-                </div>
-              )}
-
-              {statusType === 'error' && (
-                <div className="p-6 rounded-xl text-sm font-medium bg-red-50 text-red-700 border border-red-200">
-                  <h4 className="text-lg font-bold mb-2 flex items-center gap-2">
-                    ❌ Failed to Send Inquiry
-                  </h4>
-                  <p className="mb-2">Your inquiry could not be sent.</p>
-                  <p>Please try again later.</p>
+                  <p className="mb-2">Your email application has been opened with your inquiry pre-filled.</p>
+                  <p>Please review the information and click <strong>Send</strong> in your email client to submit your inquiry.</p>
                 </div>
               )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
