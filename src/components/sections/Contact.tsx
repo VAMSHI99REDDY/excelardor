@@ -44,17 +44,16 @@ export default function Contact() {
       const result = await response.json();
 
       if (response.ok) {
+        console.log("Email sent successfully", result);
         setStatusType("success");
-        setStatusMessage("Thank you! Your inquiry has been submitted successfully. We'll get back to you shortly.");
         form.reset();
       } else {
+        console.error("Email sending failed", result);
         setStatusType("error");
-        setStatusMessage(result.message || "Something went wrong. Please try again.");
       }
     } catch (error) {
-      console.error("Form submission error:", error);
+      console.error("Email sending failed", error);
       setStatusType("error");
-      setStatusMessage("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -170,9 +169,24 @@ export default function Contact() {
               className="flex flex-col gap-6"
               onSubmit={handleSubmit}
             >
-              {statusMessage && (
-                <div className={`p-4 rounded-xl text-sm font-medium ${statusType === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-                  {statusMessage}
+              {statusType === 'success' && (
+                <div className="p-6 rounded-xl text-sm font-medium bg-green-50 text-green-700 border border-green-200">
+                  <h4 className="text-lg font-bold mb-2 flex items-center gap-2">
+                    ✅ Inquiry Submitted Successfully!
+                  </h4>
+                  <p className="mb-2">Thank you for contacting Sharada Associates.</p>
+                  <p className="mb-2">Your inquiry has been successfully sent.</p>
+                  <p>Our team will contact you shortly.</p>
+                </div>
+              )}
+
+              {statusType === 'error' && (
+                <div className="p-6 rounded-xl text-sm font-medium bg-red-50 text-red-700 border border-red-200">
+                  <h4 className="text-lg font-bold mb-2 flex items-center gap-2">
+                    ❌ Failed to Send Inquiry
+                  </h4>
+                  <p className="mb-2">Your inquiry could not be sent.</p>
+                  <p>Please try again later.</p>
                 </div>
               )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
