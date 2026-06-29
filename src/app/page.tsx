@@ -3,6 +3,7 @@
 import React from "react";
 
 import dynamic from "next/dynamic";
+import WebsiteSchema from "@/components/seo/schemas/WebsiteSchema";
 
 // Layout Components
 import Footer from "@/components/layout/Footer";
@@ -47,6 +48,7 @@ export default function Home() {
 
   return (
     <main className="relative text-white font-sans overflow-x-hidden bg-[#E9E5DF]">
+      <WebsiteSchema />
       {/* ─── PREMIUM VIDEO BACKGROUND (Contained to Hero) ─── */}
       <div className="absolute top-0 left-0 w-full h-screen z-0 bg-black" style={{ transform: "translateZ(0)" }}>
         <video
