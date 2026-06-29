@@ -167,8 +167,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { 
         success: false, 
-        message: 'Failed to send inquiry.', 
-        errorDetails: error?.message || String(error)
+        message: 'Failed to send inquiry.'
       },
       { status: 500 }
     );
