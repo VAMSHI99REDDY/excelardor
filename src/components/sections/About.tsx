@@ -16,13 +16,13 @@ const TEAM = [
     name: "Ch. Sudheer",
     role: "Plant Head & Operations Manager",
     quote: "Mr. Ch. Sudheer has been associated with Excel Ardor Pvt. Ltd. for over 8 years and plays a key role in managing manufacturing operations, production planning, quality control, and project execution. With strong technical expertise and operational leadership, he ensures efficient plant operations and supports the company's growth in aerospace, defence, and advanced manufacturing sectors.",
-    avatar: "/peopleimg/Mr. Ch. Sudheer – Plant Head & Operations Manager.png",
+    avatar: "/logos/peopleimg/Mr. Ch. Sudheer – Plant Head & Operations Manager.png",
   },
   {
     name: "P. Sai Charan",
     role: "Additional Director",
     quote: "P. Sai Charan is a technology-driven leader specializing in semiconductor engineering, artificial intelligence, embedded systems, and advanced computing. With global industry experience, he contributes to the company's modernization initiatives and next-generation defence and aerospace technologies.",
-    avatar: "/peopleimg/P. Sai Charan – Additional Director.png",
+    avatar: "/logos/peopleimg/P. Sai Charan – Additional Director.png",
   },
   {
     name: "P. Prasad",
@@ -33,7 +33,7 @@ const TEAM = [
     name: "N. Rajasekhar",
     role: "Plant Supervisor & Maintenance In-Charge",
     quote: "Mr. N. Rajasekhar has been with Excel Ardor Pvt. Ltd. for nearly 15 years and oversees plant operations, machine maintenance, tooling management, and workforce coordination. His extensive shop-floor experience and commitment to quality contribute significantly to maintaining efficient manufacturing processes and operational excellence.",
-    avatar: "/peopleimg/Mr. N. Rajasekhar – Plant Supervisor & Maintenance Incharge.png",
+    avatar: "/logos/peopleimg/Mr. N. Rajasekhar – Plant Supervisor & Maintenance Incharge.png",
   },
   {
     name: "R. Sunny Babu",
@@ -99,9 +99,9 @@ const About = () => {
               {/* Left Side: Portrait Image (37% width) */}
               <div className="w-full md:w-[37%] min-h-[340px] md:min-h-[460px] relative bg-[#F4F3F0] flex items-center justify-center p-8 border-b md:border-b-0 md:border-r border-black/[0.03]">
                 <img
-                  src="/peopleimg/Mr. N. Vijay Kumar.png"
+                  src="/logos/peopleimg/Mr. N. Vijay Kumar.png"
                   alt="Mr. N. Vijay Kumar Portrait"
-                  className="w-full h-full max-h-[380px] object-contain hover:scale-[1.02] transition-transform duration-700 ease-in-out z-10"
+                  className="w-full h-full max-h-[380px] object-cover object-top rounded-xl hover:scale-[1.02] transition-transform duration-700 ease-in-out z-10"
                 />
               </div>
 
@@ -149,9 +149,9 @@ const About = () => {
               {/* Left Side: Portrait Image (37% width) */}
               <div className="w-full md:w-[37%] min-h-[340px] md:min-h-[460px] relative bg-[#F4F3F0] flex items-center justify-center p-8 border-b md:border-b-0 md:border-r border-black/[0.03]">
                 <img
-                  src="/peopleimg/Commodore Praveen Chandra.png"
+                  src="/logos/peopleimg/Commodore Praveen Chandra.png"
                   alt="Commodore Praveen Chandra Portrait"
-                  className="w-full h-full max-h-[380px] object-contain hover:scale-[1.02] transition-transform duration-700 ease-in-out z-10"
+                  className="w-full h-full max-h-[380px] object-cover object-top rounded-xl hover:scale-[1.02] transition-transform duration-700 ease-in-out z-10"
                 />
               </div>
 
@@ -218,7 +218,7 @@ const About = () => {
                       alt={member.name}
                       fill
                       sizes="96px"
-                      className="object-cover"
+                      className="object-cover object-top"
                     />
                   </div>
                 ) : (

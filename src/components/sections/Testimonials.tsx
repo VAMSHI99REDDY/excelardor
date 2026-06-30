@@ -10,25 +10,25 @@ const TEAM = [
     name: "N. Vijay Kumar",
     role: "Founder & Managing Director",
     quote: "Mr. N. Vijay Kumar is the Founder & Managing Director. In 2010, he developed and patented an Internal Hydraulic Telescopic Mast System. In 2014, he established Excel Ardor Pvt. Ltd. to focus on advanced Telescopic Masts, Defence & Aerospace Components, and Precision Engineering Solutions, driving strategic growth and indigenous innovation.",
-    avatar: "/peopleimg/Mr. N. Vijay Kumar.png",
+    avatar: "/logos/peopleimg/Mr. N. Vijay Kumar.png",
   },
   {
     name: "Cdr. Praveen Chandra",
     role: "Director & Strategic Advisor",
     quote: "Cdr. Praveen Chandra is a Director & Strategic Advisor. An IIT Kharagpur Gold Medalist, he brings decades of experience in defence systems and advanced communications, working closely with DRDO, BEL, BDL, and the Indian Navy to strengthen the company's next-generation strategic growth.",
-    avatar: "/peopleimg/Commodore Praveen Chandra.png",
+    avatar: "/logos/peopleimg/Commodore Praveen Chandra.png",
   },
   {
     name: "Ch. Sudheer",
     role: "Plant Head & Operations Manager",
     quote: "Mr. Ch. Sudheer has been associated with Excel Ardor Pvt. Ltd. for over 8 years and plays a key role in managing manufacturing operations, production planning, quality control, and project execution. With strong technical expertise and operational leadership, he ensures efficient plant operations and supports the company's growth in aerospace, defence, and advanced manufacturing sectors.",
-    avatar: "/peopleimg/Mr. Ch. Sudheer – Plant Head & Operations Manager.png",
+    avatar: "/logos/peopleimg/Mr. Ch. Sudheer – Plant Head & Operations Manager.png",
   },
   {
     name: "P. Sai Charan",
     role: "Additional Director",
     quote: "P. Sai Charan is a technology-driven leader specializing in semiconductor engineering, artificial intelligence, embedded systems, and advanced computing. With global industry experience, he contributes to the company's modernization initiatives and next-generation defence and aerospace technologies.",
-    avatar: "/peopleimg/P. Sai Charan – Additional Director.png",
+    avatar: "/logos/peopleimg/P. Sai Charan – Additional Director.png",
   },
   {
     name: "P. Prasad",
@@ -39,7 +39,7 @@ const TEAM = [
     name: "N. Rajasekhar",
     role: "Plant Supervisor & Maintenance In-Charge",
     quote: "Mr. N. Rajasekhar has been with Excel Ardor Pvt. Ltd. for nearly 15 years and oversees plant operations, machine maintenance, tooling management, and workforce coordination. His extensive shop-floor experience and commitment to quality contribute significantly to maintaining efficient manufacturing processes and operational excellence.",
-    avatar: "/peopleimg/Mr. N. Rajasekhar – Plant Supervisor & Maintenance Incharge.png",
+    avatar: "/logos/peopleimg/Mr. N. Rajasekhar – Plant Supervisor & Maintenance Incharge.png",
   },
   {
     name: "R. Sunny Babu",
@@ -293,7 +293,7 @@ export default function Testimonials() {
                         <img
                           src={member.avatar}
                           alt={member.name}
-                          className="w-12 h-12 rounded-full object-cover shadow-sm bg-white"
+                          className="w-12 h-12 rounded-full object-cover object-top shadow-sm bg-white"
                         />
                       ) : (
                         <div className="w-12 h-12 rounded-full border border-black/5 shadow-sm bg-white flex items-center justify-center text-black/50 font-bold text-sm">
