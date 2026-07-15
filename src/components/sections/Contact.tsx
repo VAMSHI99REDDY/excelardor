@@ -104,9 +104,15 @@ ${new Date().toLocaleString()}`;
                   <span className="block font-semibold text-[11px] sm:text-xs text-black/50 tracking-wider uppercase mb-1">
                     Location
                   </span>
-                  <p className="text-black font-medium text-sm sm:text-base md:text-lg leading-relaxed break-words">
+                  <a
+                    href="https://www.google.com/maps/search/?api=1&query=D-165/A,+Phase-3,+IDA+Jeedimetla,+Apurupa+Colony,+Suraram,+Hyderabad,+Telangana+500055"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Open company location in Google Maps"
+                    className="text-black font-medium text-sm sm:text-base md:text-lg leading-relaxed break-words block cursor-pointer"
+                  >
                     D-165/A, Phase - 3, IDA Jeedimetla, Apurupa Colony, Suraram, Hyderabad, Telangana 500055
-                  </p>
+                  </a>
                 </div>
               </div>
 

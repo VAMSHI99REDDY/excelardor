@@ -53,9 +53,6 @@ const LogoTickerRow = ({ logos, speed, reverse = false }: { logos: { name: strin
   );
 };
 export default function MajorCustomers() {
-  const half = Math.ceil(allLogos.length / 2);
-  const row1 = allLogos.slice(0, half);
-  const row2 = allLogos.slice(half);
   return (
     <section className="py-8 md:py-10 relative overflow-hidden bg-white text-black border-y border-black/5">
       <div className="container mx-auto px-6 md:px-12 mb-6 w-full text-center">
@@ -79,8 +76,7 @@ export default function MajorCustomers() {
       </div>
 
       <div className="relative w-full overflow-hidden flex flex-col bg-transparent gap-2">
-        <LogoTickerRow logos={row1} speed={25} />
-        <LogoTickerRow logos={row2} speed={30} reverse={true} />
+        <LogoTickerRow logos={allLogos} speed={40} />
       </div>
 
       <div className="flex justify-center mt-6 relative z-20">
