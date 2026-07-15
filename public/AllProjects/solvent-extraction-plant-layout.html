@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Industrial Process Skid – Dense CAD Layout</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { overflow: hidden; background: #ffffff; font-family: Arial, sans-serif; }
+    canvas { display: block; }
+
+    #ui {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      background: rgba(245,245,245,0.95);
+      border: 1px solid #cfcfcf;
+      padding: 10px 14px;
+      font-family: "Courier New", monospace;
+      font-size: 11px;
+      color: #333;
+      line-height: 1.75;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      min-width: 180px;
+      z-index: 10;
+    }
+
+    #ui b {
+      display: block;
+      color: #111;
+      margin-bottom: 4px;
+    }
+
+    #ui hr {
+      border: none;
+      border-top: 1px solid #ccc;
+      margin: 6px 0;
+    }
+
+    #bot {
+      position: fixed;
+      bottom: 14px;
+      right: 14px;
+      background: rgba(245,245,245,0.95);
+      border: 1px solid #cfcfcf;
+      padding: 8px 12px;
+      font-family: "Courier New", monospace;
+      font-size: 10px;
+      color: #555;
+      line-height: 1.6;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      z-index: 10;
+    }
+
+    #errorBox {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      color: #111;
+      font-family: Arial, sans-serif;
+      z-index: 999;
+      text-align: center;
+      padding: 30px;
+    }
+
+    #errorBox div {
+      max-width: 600px;
+      border: 1px solid #ddd;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    }
+
+    #errorBox h2 {
+      margin-bottom: 10px;
+    }
+
+    #errorBox p {
+      color: #444;
+      line-height: 1.7;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      #ui { width: 90%; top: 10px; left: 5%; font-size: 9px; padding: 6px 10px; }
+      #ui hr, #ui br + b + br, #ui b:nth-of-type(2), #ui b:nth-of-type(2) ~ * { display: none; } /* Hide assembly contents on mobile to save space */
+      #bot { bottom: 10px; left: 5%; right: 5%; font-size: 8px; padding: 5px 10px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+
+
+
+<div id="errorBox">
+  <div>
+    <h2>3D Model Failed to Load</h2>
+    <p id="errorText">Please open this file using Live Server in VS Code and check your internet connection.</p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+(function () {
+  const errorBox = document.getElementById("errorBox");
+  const errorText = document.getElementById("errorText");
+
+  function showError(msg) {
+    errorText.textContent = msg;
+    errorBox.style.display = "flex";
+    console.error(msg);
+  }
+
+  if (typeof THREE === "undefined") {
+    showError("Three.js failed to load. Check internet connection or open with Live Server.");
+    return;
+  }
+
+  // ============================================================
+  // SCENE SETUP
+  // ============================================================
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xffffff);
+  scene.fog = null;
+
+  const camera = new THREE.PerspectiveCamera(32, W / H, 0.05, 500);
+
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+  } catch (e) {
+    showError("WebGL renderer failed. Your browser or GPU may not support this.");
+    return;
+  }
+
+  renderer.setSize(W, H);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMappingExposure = 0.95;
+  document.body.appendChild(renderer.domElement);
+  renderer.domElement.style.touchAction = 'none';
+
+  // ============================================================
+  // LIGHTING
+  // ============================================================
+  const ambient = new THREE.AmbientLight(0xffffff, 0.52);
+  scene.add(ambient);
+
+  const key = new THREE.DirectionalLight(0xffffff, 1.0);
+  key.position.set(18, 26, 22);
+  key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.camera.near = 1;
+  key.shadow.camera.far = 150;
+  key.shadow.camera.left = -35;
+  key.shadow.camera.right = 35;
+  key.shadow.camera.top = 35;
+  key.shadow.camera.bottom = -35;
+  key.shadow.bias = -0.001;
+  scene.add(key);
+
+  const fill = new THREE.DirectionalLight(0xffffff, 0.20);
+  fill.position.set(-16, 14, -18);
+  scene.add(fill);
+
+  const rim = new THREE.DirectionalLight(0xffffff, 0.10);
+  rim.position.set(0, 6, -24);
+  scene.add(rim);
+
+  // ============================================================
+  // MATERIALS
+  // ============================================================
+  function mat(hex, rough = 0.65, metal = 0.15) {
+    return new THREE.MeshStandardMaterial({
+      color: hex,
+      roughness: rough,
+      metalness: metal
+    });
+  }
+
+  const M = {
+    ground:   mat(0xbdbdbd, 0.85, 0.03),
+    platform: mat(0x8f8f8f, 0.72, 0.08),
+    struct:   mat(0x6f6f6f, 0.58, 0.12),
+    vessel:   mat(0x787878, 0.52, 0.18),
+    vesselTop:mat(0xd8d8d8, 0.42, 0.22),
+    column:   mat(0x6d6d6d, 0.52, 0.18),
+    pipe:     mat(0x3f3f3f, 0.48, 0.18),
+    panel:    mat(0x696969, 0.60, 0.10),
+    dark:     mat(0x1e1e1e, 0.55, 0.18),
+    pump:     mat(0x4e4e4e, 0.55, 0.18),
+    slab2:    mat(0xcfcfcf, 0.85, 0.03),
+  };
+
+  // ============================================================
+  // HELPERS
+  // ============================================================
+  function addMesh(geo, material, x, y, z, rx = 0, ry = 0, rz = 0) {
+    const m = new THREE.Mesh(geo, material);
+    m.position.set(x, y, z);
+    m.rotation.set(rx, ry, rz);
+    m.castShadow = true;
+    m.receiveShadow = true;
+    scene.add(m);
+    return m;
+  }
+
+  function BOX(w, h, d, material, x, y, z, ry = 0) {
+    return addMesh(new THREE.BoxGeometry(w, h, d), material, x, y, z, 0, ry, 0);
+  }
+
+  function CYL(rt, rb, h, segs, material, x, y, z, rx = 0, ry = 0, rz = 0) {
+    return addMesh(new THREE.CylinderGeometry(rt, rb, h, segs || 24), material, x, y, z, rx, ry, rz);
+  }
+
+  function DOME(r, material, x, y, z, flip = false) {
+    const g = new THREE.SphereGeometry(r, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2);
+    const m = new THREE.Mesh(g, material);
+    m.position.set(x, y, z);
+    if (flip) m.rotation.z = Math.PI;
+    m.castShadow = true;
+    m.receiveShadow = true;
+    scene.add(m);
+    return m;
+  }
+
+  function CONE(r, h, segs, material, x, y, z) {
+    return addMesh(new THREE.ConeGeometry(r, h, segs || 24), material, x, y, z);
+  }
+
+  function TORUS(R, r, material, x, y, z) {
+    return addMesh(new THREE.TorusGeometry(R, r, 8, 32), material, x, y, z, Math.PI / 2, 0, 0);
+  }
+
+  function PIPE(x1, y1, z1, x2, y2, z2, r, material) {
+    const dir = new THREE.Vector3(x2 - x1, y2 - y1, z2 - z1);
+    const len = dir.length();
+    if (len < 0.005) return;
+
+    const g = new THREE.CylinderGeometry(r, r, len, 8);
+    const m = new THREE.Mesh(g, material || M.pipe);
+    m.position.set((x1 + x2) / 2, (y1 + y2) / 2, (z1 + z2) / 2);
+    dir.normalize();
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+    m.castShadow = false;
+    m.receiveShadow = true;
+    scene.add(m);
+    return m;
+  }
+  function guardrail(x1, z1, x2, z2, y, h) {
+    PIPE(x1, y, z1, x2, y, z2, 0.04, M.struct);
+    PIPE(x1, y + h, z1, x2, y + h, z2, 0.035, M.struct);
+    PIPE(x1, y, z1, x1, y + h, z1, 0.035, M.struct);
+    PIPE(x2, y, z2, x2, y + h, z2, 0.035, M.struct);
+
+    const mx = (x1 + x2) / 2;
+    const mz = (z1 + z2) / 2;
+    PIPE(mx, y, mz, mx, y + h, mz, 0.03, M.struct);
+  }
+
+  // ============================================================
+  // MAIN MODEL BUILD
+  // ============================================================
+
+  // Ground base slab
+  BOX(22, 0.28, 17, M.ground, -0.5, 0.14, 0.5);
+
+  // Lower platform
+  BOX(15, 0.22, 11.5, M.platform, -0.5, 4.8, 0.0);
+  BOX(15.2, 0.08, 0.08, M.struct, -0.5, 4.92, 5.75);
+  BOX(15.2, 0.08, 0.08, M.struct, -0.5, 4.92, -5.75);
+  BOX(0.08, 0.08, 11.5, M.struct, -7.8, 4.92, 0);
+  BOX(0.08, 0.08, 11.5, M.struct, 6.8, 4.92, 0);
+
+  // Upper platform
+  BOX(15, 0.22, 11.5, M.platform, -0.5, 9.8, 0.0);
+
+  // Structural columns
+  const colXZ = [
+    [-7.2, -5.2], [6.0, -5.2],
+    [-7.2,  5.2], [6.0,  5.2],
+    [-0.5, -5.2], [-0.5,  5.2]
+  ];
+
+  colXZ.forEach(([cx, cz]) => BOX(0.28, 4.58, 0.28, M.struct, cx, 2.4, cz));
+  colXZ.forEach(([cx, cz]) => BOX(0.28, 4.78, 0.28, M.struct, cx, 7.2, cz));
+
+  [-5.2, 5.2].forEach(bz => {
+    BOX(13.5, 0.2, 0.2, M.struct, -0.5, 4.8, bz);
+    BOX(13.5, 0.2, 0.2, M.struct, -0.5, 9.8, bz);
+  });
+
+  [-7.2, 6.0].forEach(bx => {
+    BOX(0.2, 0.2, 10.8, M.struct, bx, 4.8, 0);
+    BOX(0.2, 0.2, 10.8, M.struct, bx, 9.8, 0);
+  });
+
+  // Guardrails
+  const rY1 = 4.91, rY2 = 9.91, rH = 0.65;
+  guardrail(-7.2, 5.2, 6.0, 5.2, rY1, rH);
+  guardrail(-7.2, 5.2, 6.0, 5.2, rY2, rH);
+  guardrail(-7.2, -5.2, 6.0, -5.2, rY1, rH);
+  guardrail(-7.2, -5.2, 6.0, -5.2, rY2, rH);
+  guardrail(-7.2, -5.2, -7.2, 5.2, rY1, rH);
+  guardrail(-7.2, -5.2, -7.2, 5.2, rY2, rH);
+
+  // Staircase
+  const stairX = 7.0;
+  for (let s = 0; s < 10; s++) {
+    const sy = 0.15 + s * 0.465;
+    const sx = stairX - s * 0.18;
+    BOX(0.9, 0.09, 0.4, M.struct, sx - 0.1, sy, 4.3);
+  }
+  PIPE(stairX, 0.1, 3.9, stairX - 1.8, 4.8, 3.9, 0.04, M.struct);
+  PIPE(stairX, 0.1, 4.7, stairX - 1.8, 4.8, 4.7, 0.04, M.struct);
+  BOX(1.1, 0.15, 1.2, M.platform, stairX - 1.9, 4.88, 4.3);
+
+  for (let s = 0; s < 10; s++) {
+    const sy = 4.95 + s * 0.485;
+    const sx = stairX - 1.8 - s * 0.15;
+    BOX(0.9, 0.09, 0.4, M.struct, sx - 0.1, sy, 4.3);
+  }
+  PIPE(stairX - 1.8, 4.85, 3.9, stairX - 3.3, 9.8, 3.9, 0.04, M.struct);
+  PIPE(stairX - 1.8, 4.85, 4.7, stairX - 3.3, 9.8, 4.7, 0.04, M.struct);
+
+  // Pipe rack
+  const rackY = 15.2;
+  const rackZs = [-3.0, -2.5, -2.0, -1.5];
+  rackZs.forEach((rz, i) => {
+    PIPE(-7, rackY - i * 0.3, rz, 6.5, rackY - i * 0.3, rz, 0.07 - i * 0.005, M.pipe);
+  });
+
+  for (let rx = -6; rx <= 6; rx += 2) {
+    PIPE(rx, 9.91, -3.0, rx, rackY, -3.0, 0.05, M.struct);
+  }
+
+  // Distillation columns
+  const distCols = [
+    { x:-6.5, z:-3.8, r:0.42, h:7.5,  nz:6 },
+    { x:-5.0, z:-3.2, r:0.42, h:8.5,  nz:6 },
+    { x:-3.2, z:-2.6, r:0.48, h:9.5,  nz:7 },
+    { x:-1.2, z:-2.0, r:0.52, h:10.5, nz:7 },
+    { x: 0.8, z:-1.4, r:0.55, h:11.2, nz:8 },
+    { x: 2.8, z:-0.8, r:0.45, h:9.0,  nz:6 },
+    { x: 4.5, z:-0.2, r:0.40, h:7.8,  nz:5 }
+  ];
+
+  distCols.forEach(({x, z, r, h, nz}) => {
+    const base = 9.91;
+    CYL(r, r, h, 28, M.column, x, base + h / 2, z);
+    DOME(r, M.vesselTop, x, base + h, z);
+    CYL(r + 0.04, r + 0.04, 0.12, 28, M.dark, x, base + 0.06, z);
+
+    for (let n = 1; n < nz; n++) {
+      TORUS(r + 0.025, 0.038, M.dark, x, base + n * (h / nz), z);
+    }
+
+    CYL(0.09, 0.09, 0.6, 10, M.pipe, x, base + h + r + 0.3, z);
+    TORUS(0.12, 0.04, M.dark, x, base + h + r + 0.02, z);
+
+    CYL(0.055, 0.055, 0.35, 8, M.pipe, x + r + 0.18, base + h * 0.65, z);
+    CYL(0.055, 0.055, 0.35, 8, M.pipe, x + r + 0.18, base + h * 0.35, z);
+
+    PIPE(x, base + h + r + 0.6, z, x, rackY - 0.5, -3.0, 0.04, M.pipe);
+  });
+
+  // Upper tanks
+  CYL(1.2, 1.2, 2.8, 32, M.vessel, -6.2, 11.42, 3.0);
+  CONE(1.22, 1.2, 32, M.vesselTop, -6.2, 13.31, 3.0);
+  CYL(0.13, 0.13, 0.5, 12, M.pipe, -6.2, 14.66, 3.0);
+  TORUS(1.22, 0.05, M.dark, -6.2, 10.01, 3.0);
+
+  CYL(1.55, 1.55, 3.4, 32, M.vessel, -3.5, 11.72, 2.8);
+  CONE(1.57, 1.5, 32, M.vesselTop, -3.5, 14.06, 2.8);
+  CYL(0.16, 0.16, 0.55, 12, M.pipe, -3.5, 15.09, 2.8);
+  TORUS(1.57, 0.055, M.dark, -3.5, 10.01, 2.8);
+  CYL(0.08, 0.08, 0.35, 8, M.pipe, -1.9, 11.11, 2.8);
+
+  CYL(1.35, 1.35, 3.0, 32, M.vessel, -1.0, 11.52, 2.0);
+  DOME(1.35, M.vesselTop, -1.0, 12.91, 2.0);
+  CYL(0.14, 0.14, 0.5, 12, M.pipe, -1.0, 14.51, 2.0);
+  TORUS(1.37, 0.05, M.dark, -1.0, 10.01, 2.0);
+
+  // Separator vessel
+  CYL(1.1, 1.1, 2.5, 32, M.vessel, 3.8, 11.27, 1.0);
+  DOME(1.1, M.vesselTop, 3.8, 12.41, 1.0);
+  DOME(1.1, M.vesselTop, 3.8, 10.01, 1.0);
+  CYL(0.1, 0.1, 0.4, 10, M.pipe, 3.8, 13.71, 1.0);
+  CYL(0.08, 0.08, 0.35, 8, M.pipe, 4.2, 13.51, 1.0);
+  CYL(0.08, 0.08, 0.35, 8, M.pipe, 3.4, 13.51, 1.0);
+  CYL(0.08, 0.08, 0.35, 8, M.pipe, 3.8, 13.51, 1.4);
+
+  // Central large vessel
+  CYL(1.3, 1.3, 9.5, 36, M.vessel, 2.5, 4.75, -1.5);
+  DOME(1.3, M.vesselTop, 2.5, 9.5, -1.5);
+  DOME(1.3, M.vesselTop, 2.5, 0.05, -1.5, true);
+
+  for (let n = 1; n < 6; n++) {
+    TORUS(1.32, 0.05, M.dark, 2.5, n * 1.55, -1.5);
+  }
+
+  CYL(0.16, 0.16, 0.65, 12, M.pipe, 2.5, 10.15, -1.5);
+  TORUS(0.2, 0.05, M.dark, 2.5, 9.75, -1.5);
+  CYL(0.09, 0.09, 0.45, 8, M.pipe, 3.85, 7.5, -1.5);
+  CYL(0.09, 0.09, 0.45, 8, M.pipe, 3.85, 5.0, -1.5);
+  CYL(0.09, 0.09, 0.45, 8, M.pipe, 3.85, 2.5, -1.5);
+
+  CYL(0.7, 0.7, 2.8, 20, M.vessel, 4.8, 1.5, -0.5);
+  DOME(0.7, M.vesselTop, 4.8, 2.9, -0.5);
+
+  // Valve manifold panels
+  BOX(3.0, 1.8, 0.35, M.panel, -5.8, 6.2, -4.2);
+  for (let vi = 0; vi < 4; vi++) {
+    for (let vj = 0; vj < 3; vj++) {
+      CYL(0.1, 0.1, 0.2, 10, M.dark, -7.0 + vi * 0.8, 5.6 + vj * 0.55, -4.06);
+      BOX(0.35, 0.07, 0.07, M.dark, -7.0 + vi * 0.8, 5.6 + vj * 0.55, -4.02);
+    }
+  }
+
+  BOX(2.2, 1.6, 0.32, M.panel, -3.2, 6.1, -4.3);
+  for (let vi = 0; vi < 3; vi++) {
+    for (let vj = 0; vj < 3; vj++) {
+      CYL(0.09, 0.09, 0.18, 10, M.dark, -4.0 + vi * 0.7, 5.55 + vj * 0.5, -4.16);
+    }
+  }
+
+  BOX(1.8, 1.4, 0.3, M.panel, -1.0, 6.0, -4.2);
+  for (let bi = 0; bi < 3; bi++) {
+    for (let bj = 0; bj < 2; bj++) {
+      BOX(0.18, 0.18, 0.1, M.dark, -1.7 + bi * 0.6, 5.7 + bj * 0.55, -4.08);
+    }
+  }
+
+  // Lower-level piping
+  for (let i = 0; i < 6; i++) {
+    PIPE(-7.5 + i * 0.8, 0.3, -4.8, -7.5 + i * 0.8, 4.8, -4.0, 0.05, M.pipe);
+  }
+
+  PIPE(-7.5, 1.5, -4.8, -1.0, 1.5, -4.8, 0.08, M.pipe);
+  PIPE(-7.5, 2.5, -4.8, -1.0, 2.5, -4.8, 0.07, M.pipe);
+  PIPE(-7.5, 3.5, -4.8, -1.0, 3.5, -4.8, 0.065, M.pipe);
+
+  for (let i = 0; i < 4; i++) {
+    PIPE(-7 + i * 1.5, 0.3, -4.8, -7 + i * 1.5, 0.3, -3.5, 0.05, M.pipe);
+  }
+
+  for (let i = 0; i < 8; i++) {
+    PIPE(-7.4 + i * 0.65, 1.8, -4.5, -7.4 + i * 0.65, 4.75, -4.0, 0.025, M.pipe);
+  }
+
+  // Upper piping
+  PIPE(-6.2, 9.91, 3.0, -3.5, 9.91, 2.8, 0.08, M.pipe);
+  PIPE(-3.5, 9.91, 2.8, -1.0, 9.91, 2.0, 0.08, M.pipe);
+  PIPE(-1.0, 9.91, 2.0, 3.8, 9.91, 1.0, 0.07, M.pipe);
+  PIPE(-6.5, 12.5, -3.8, 4.5, 11.5, -0.2, 0.06, M.pipe);
+  PIPE(-6.5, 13.0, -3.8, 4.5, 12.0, -0.2, 0.055, M.pipe);
+  PIPE(-6.5, rackY, -3.0, -6.5, 17.83, -3.8, 0.045, M.pipe);
+  PIPE(-5.0, rackY - 0.3, -3.0, -5.0, 18.83, -3.2, 0.045, M.pipe);
+
+  // Pump skids
+  const pumps = [
+    [-7.0, -5.5], [-5.0, -5.5], [-3.0, -5.5], [-1.0, -5.5]
+  ];
+
+  pumps.forEach(([px, pz]) => {
+    BOX(1.5, 0.22, 1.2, M.platform, px, 0.11, pz);
+    CYL(0.32, 0.28, 0.55, 20, M.pump, px - 0.15, 0.5, pz);
+    CYL(0.26, 0.26, 1.0, 20, M.dark, px + 0.35, 0.52, pz, Math.PI / 2);
+    CYL(0.18, 0.18, 0.22, 16, M.struct, px + 0.12, 0.52, pz, Math.PI / 2);
+    CYL(0.07, 0.07, 0.3, 8, M.pipe, px - 0.15, 0.88, pz);
+    CYL(0.08, 0.08, 0.28, 8, M.pipe, px - 0.55, 0.45, pz, 0, 0, Math.PI / 2);
+
+    [0.55, -0.55].forEach(bx => {
+      [0.42, -0.42].forEach(bz => {
+        BOX(0.06, 0.18, 0.06, M.dark, px + bx, 0.2, pz + bz);
+      });
+    });
+
+    BOX(0.4, 0.08, 0.25, M.panel, px + 0.35, 0.22, pz);
+  });
+
+  PIPE(-8.0, 0.32, -5.5, 0.5, 0.32, -5.5, 0.09, M.pipe);
+  PIPE(-8.0, 0.65, -5.5, 0.5, 0.65, -5.5, 0.09, M.pipe);
+
+  pumps.forEach(([px, pz]) => {
+    PIPE(px, 0.88, pz, px, 4.5, pz, 0.06, M.pipe);
+    PIPE(px - 0.15, 0.88, pz, px - 0.15, 1.5, pz, 0.06, M.pipe);
+  });
+
+  // Connection to side tank
+  PIPE(7.0, 0.6, -1.0, 10.5, 0.6, -3.0, 0.1, M.pipe);
+  PIPE(10.5, 0.6, -3.0, 14.5, 0.6, -4.0, 0.1, M.pipe);
+  CYL(0.07, 0.07, 0.6, 8, M.struct, 9.0, 0.3, -2.2);
+  CYL(0.07, 0.07, 0.6, 8, M.struct, 12.0, 0.3, -3.5);
+  TORUS(0.14, 0.045, M.dark, 10.5, 0.6, -3.0);
+
+  // Side tank skid
+  BOX(7.0, 0.26, 6.5, M.slab2, 16.5, 0.13, -3.5);
+  CYL(2.3, 2.3, 6.0, 40, M.vessel, 16.5, 3.26, -3.5);
+  DOME(2.3, M.vesselTop, 16.5, 6.26, -3.5);
+  TORUS(2.35, 0.12, M.dark, 16.5, 0.28, -3.5);
+  TORUS(2.35, 0.09, M.dark, 16.5, 3.0, -3.5);
+  TORUS(2.35, 0.07, M.dark, 16.5, 5.5, -3.5);
+  CYL(0.15, 0.15, 0.55, 12, M.pipe, 16.5, 7.68, -3.5);
+  TORUS(0.2, 0.055, M.dark, 16.5, 7.42, -3.5);
+  CYL(0.1, 0.1, 0.4, 10, M.pipe, 17.2, 7.5, -3.5);
+  CYL(0.1, 0.1, 0.4, 10, M.pipe, 15.8, 7.5, -3.5);
+  CYL(0.1, 0.1, 0.4, 10, M.pipe, 16.5, 7.5, -2.8);
+  CYL(0.1, 0.1, 0.4, 10, M.pipe, 16.5, 7.5, -4.2);
+  CYL(0.42, 0.42, 0.22, 24, M.dark, 18.9, 3.5, -3.5);
+  CYL(0.38, 0.38, 0.14, 24, M.dark, 19.05, 3.5, -3.5);
+
+  BOX(0.07, 4.5, 0.07, M.struct, 14.1, 3.0, -3.5);
+  PIPE(14.1, 1.0, -3.5, 14.2, 1.0, -3.5, 0.06, M.pipe);
+  PIPE(14.1, 5.0, -3.5, 14.2, 5.0, -3.5, 0.06, M.pipe);
+
+  BOX(1.4, 0.2, 1.1, M.platform, 16.5, 0.23, -0.8);
+  CYL(0.28, 0.28, 0.85, 20, M.dark, 16.8, 0.65, -0.8, Math.PI / 2);
+  BOX(0.65, 0.48, 0.48, M.pump, 16.35, 0.62, -0.8);
+
+  BOX(1.4, 0.2, 1.1, M.platform, 14.8, 0.23, -3.5);
+  CYL(0.28, 0.28, 0.85, 20, M.dark, 14.8, 0.65, -3.5);
+  BOX(0.55, 0.48, 0.48, M.pump, 14.8, 0.62, -3.5);
+
+  // ============================================================
+  // FULL DETAIL UPGRADE BLOCK
+  // ============================================================
+
+  for (let i = 0; i < 8; i++) {
+    const px = -7.0 + i * 0.82;
+    CYL(0.11, 0.11, 4.9, 18, M.pipe, px, 2.45, -3.9);
+    CYL(0.09, 0.09, 4.1, 18, M.pipe, px + 0.18, 2.05, -3.25);
+    CYL(0.04, 0.04, 0.22, 8, M.dark, px, 5.02, -3.9);
+    CYL(0.04, 0.04, 0.22, 8, M.dark, px + 0.18, 4.15, -3.25);
+    TORUS(0.13, 0.016, M.dark, px, 2.7, -3.9);
+    TORUS(0.11, 0.014, M.dark, px + 0.18, 2.1, -3.25);
+    PIPE(px, 1.2, -3.9, px + 0.42, 1.2, -4.55, 0.028, M.pipe);
+    PIPE(px, 3.0, -3.9, px + 0.5, 3.0, -4.45, 0.028, M.pipe);
+  }
+
+  const controlModules = [
+    [-6.4, -2.3], [-5.0, -2.15], [-3.6, -2.2], [-2.2, -2.1], [-0.8, -2.0]
+  ];
+
+  controlModules.forEach(([bx, bz]) => {
+    BOX(0.95, 1.25, 0.82, M.panel, bx, 1.1, bz);
+    BOX(0.72, 0.16, 0.72, M.dark, bx, 1.78, bz);
+    PIPE(bx - 0.48, 0.8, bz, bx - 1.05, 0.8, bz - 0.5, 0.04, M.pipe);
+    PIPE(bx + 0.48, 1.3, bz, bx + 1.05, 1.3, bz - 0.45, 0.04, M.pipe);
+    PIPE(bx, 1.8, bz, bx, 3.8, bz - 0.2, 0.03, M.pipe);
+    CYL(0.05, 0.05, 0.18, 8, M.dark, bx + 0.52, 1.1, bz);
+    CYL(0.05, 0.05, 0.18, 8, M.dark, bx - 0.52, 1.1, bz);
+  });
+
+  CYL(0.9, 0.9, 3.8, 24, M.vessel, 0.8, 2.0, -0.5);
+  DOME(0.9, M.vesselTop, 0.8, 3.9, -0.5);
+  TORUS(0.93, 0.035, M.dark, 0.8, 1.05, -0.5);
+  TORUS(0.93, 0.03, M.dark, 0.8, 2.8, -0.5);
+
+  CYL(0.72, 0.72, 3.3, 24, M.vessel, 2.35, 1.75, 0.55);
+  DOME(0.72, M.vesselTop, 2.35, 3.4, 0.55);
+  TORUS(0.75, 0.03, M.dark, 2.35, 1.0, 0.55);
+
+  CYL(0.65, 0.65, 2.9, 24, M.vessel, 3.8, 1.55, -1.2);
+  DOME(0.65, M.vesselTop, 3.8, 3.0, -1.2);
+  TORUS(0.68, 0.028, M.dark, 3.8, 0.95, -1.2);
+
+  PIPE(0.8, 3.95, -0.5, 0.8, 9.7, -0.5, 0.055, M.pipe);
+  PIPE(2.35, 3.45, 0.55, 2.35, 9.7, 0.55, 0.05, M.pipe);
+  PIPE(3.8, 3.05, -1.2, 3.8, 9.7, -1.2, 0.045, M.pipe);
+
+  for (let i = 0; i < 11; i++) {
+    const px = -7.4 + i * 0.66;
+    PIPE(px, 0.4, -4.7, px, 4.7, -3.7, 0.017, M.dark);
+  }
+
+  for (let j = 0; j < 6; j++) {
+    const py = 0.95 + j * 0.58;
+    PIPE(-7.5, py, -4.95, -0.8, py, -4.95, 0.022, M.dark);
+  }
+
+  for (let i = 0; i < 6; i++) {
+    const z = -4.3 + i * 0.45;
+    PIPE(-7.4, 0.8, z, -0.8, 0.8, z, 0.028, M.pipe);
+    PIPE(-7.4, 1.8, z, -0.8, 1.8, z, 0.026, M.pipe);
+  }
+
+  const smallTopCols = [
+    [-5.8, -1.2], [-4.7, -0.9], [-3.6, -0.4],
+    [-2.5,  0.0], [-1.4,  0.4], [-0.2, 0.8],
+    [1.0,   1.0], [2.2, 1.15], [3.1, 1.25]
+  ];
+
+  smallTopCols.forEach(([x, z], idx) => {
+    const h = 2.6 + (idx % 4) * 0.55;
+    CYL(0.17, 0.17, h, 20, M.pipe, x, 9.91 + h / 2, z);
+    CYL(0.05, 0.05, 0.32, 8, M.dark, x, 9.91 + h + 0.18, z);
+    TORUS(0.19, 0.018, M.dark, x, 9.91 + h * 0.45, z);
+    TORUS(0.19, 0.018, M.dark, x, 9.91 + h * 0.75, z);
+    PIPE(x, 9.91 + h, z, x + 0.5, 14.0, z - 0.2, 0.025, M.pipe);
+  });
+
+  const topNozzles = [
+    [-6.2, 3.0], [-3.5, 2.8], [-1.0, 2.0], [3.8, 1.0]
+  ];
+
+  topNozzles.forEach(([x, z]) => {
+    CYL(0.08, 0.08, 0.35, 8, M.dark, x, 13.8, z);
+    CYL(0.05, 0.05, 0.22, 8, M.dark, x + 0.25, 13.5, z + 0.15);
+    CYL(0.05, 0.05, 0.22, 8, M.dark, x - 0.25, 13.5, z - 0.15);
+  });
+
+  for (let rz = -3.9; rz <= 1.0; rz += 0.5) {
+    PIPE(-7.2, 14.0, rz, 6.5, 14.0, rz, 0.028, M.pipe);
+  }
+
+  for (let i = -6; i <= 6; i += 2) {
+    PIPE(i, 13.2, -3.4, i, 15.1, -3.4, 0.024, M.struct);
+  }
+
+  for (let i = 0; i < 8; i++) {
+    const angle = (Math.PI * 2 / 8) * i;
+    const tx = 16.5 + Math.cos(angle) * 0.72;
+    const tz = -3.5 + Math.sin(angle) * 0.72;
+    CYL(0.04, 0.04, 0.16, 8, M.dark, tx, 7.42, tz);
+  }
+
+  const frontMiniPumps = [
+    [-6.8, -6.2], [-5.2, -6.2], [-3.6, -6.2]
+  ];
+
+  frontMiniPumps.forEach(([px, pz]) => {
+    BOX(0.9, 0.12, 0.6, M.platform, px, 0.08, pz);
+    CYL(0.18, 0.18, 0.5, 16, M.dark, px - 0.1, 0.28, pz, Math.PI / 2);
+    BOX(0.35, 0.25, 0.25, M.pump, px + 0.2, 0.25, pz);
+    CYL(0.05, 0.05, 0.18, 8, M.pipe, px - 0.35, 0.35, pz);
+  });
+
+  for (let i = -6; i <= 4; i += 2.5) {
+    PIPE(i, 0.2, -5.0, i, 4.8, -5.0, 0.04, M.struct);
+    PIPE(i, 0.2,  5.0, i, 4.8,  5.0, 0.04, M.struct);
+  }
+
+  for (let i = 0; i < 5; i++) {
+    const x = -6.8 + i * 1.25;
+    for (let j = 0; j < 4; j++) {
+      const y = 0.9 + j * 0.45;
+      CYL(0.06, 0.06, 0.14, 8, M.dark, x, y, -3.0);
+      BOX(0.18, 0.05, 0.05, M.dark, x + 0.12, y, -3.0);
+    }
+  }
+
+  for (let i = 0; i < 6; i++) {
+    const z = -1.5 + i * 0.45;
+    PIPE(4.5, 1.0, z, 6.2, 1.0, z - 0.2, 0.03, M.pipe);
+    PIPE(4.5, 2.0, z, 6.2, 2.0, z - 0.2, 0.03, M.pipe);
+  }
+
+  // ============================================================
+  // CAMERA CONTROLS
+  // ============================================================
+  let drag = false;
+  let rightDrag = false;
+  let prev = { x: 0, y: 0 };
+
+  let sph = { theta: 0.62, phi: 0.72, r: 40 };
+  let tgt = new THREE.Vector3(1.5, 5.2, -0.5);
+
+  function applyCamera() {
+    camera.position.x = tgt.x + sph.r * Math.sin(sph.phi) * Math.sin(sph.theta);
+    camera.position.y = tgt.y + sph.r * Math.cos(sph.phi);
+    camera.position.z = tgt.z + sph.r * Math.sin(sph.phi) * Math.cos(sph.theta);
+    camera.lookAt(tgt);
+  }
+  applyCamera();
+
+  renderer.domElement.addEventListener("mousedown", (e) => {
+    drag = true;
+    rightDrag = e.button === 2;
+    prev = { x: e.clientX, y: e.clientY };
+  });
+
+  renderer.domElement.addEventListener("contextmenu", (e) => e.preventDefault());
+
+  window.addEventListener("mouseup", () => {
+    drag = false;
+  });
+
+  window.addEventListener("mousemove", (e) => {
+    if (!drag) return;
+
+    const dx = (e.clientX - prev.x) * 0.007;
+    const dy = (e.clientY - prev.y) * 0.007;
+    prev = { x: e.clientX, y: e.clientY };
+
+    if (rightDrag) {
+      const right = new THREE.Vector3();
+      right.crossVectors(
+        camera.getWorldDirection(new THREE.Vector3()),
+        new THREE.Vector3(0, 1, 0)
+      ).normalize();
+
+      tgt.addScaledVector(right, -dx * sph.r * 0.12);
+      tgt.y += dy * sph.r * 0.12;
+    } else {
+      sph.theta -= dx;
+      sph.phi = Math.max(0.05, Math.min(1.52, sph.phi + dy));
+    }
+
+    applyCamera();
+  });
+
+  renderer.domElement.addEventListener("wheel", (e) => {
+    sph.r = Math.max(8, Math.min(150, sph.r + e.deltaY * 0.035));
+    applyCamera();
+  }, { passive: true });
+
+  // Touch support
+  let touch0 = null;
+  renderer.domElement.addEventListener("touchstart", (e) => {
+    touch0 = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }, { passive: true });
+
+  renderer.domElement.addEventListener("touchmove", (e) => {
+    if (!touch0) return;
+
+    const dx = (e.touches[0].clientX - touch0.x) * 0.01;
+    const dy = (e.touches[0].clientY - touch0.y) * 0.01;
+
+    sph.theta -= dx;
+    sph.phi = Math.max(0.05, Math.min(1.52, sph.phi + dy));
+
+    touch0 = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    applyCamera();
+  }, { passive: true });
+
+  // Resize
+  function resize() {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    camera.aspect = w / h;
+    
+    if (w < h) {
+      sph.r = 60; // Zoom out for portrait
+    } else {
+      sph.r = 40;
+    }
+    
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+    applyCamera();
+  }
+  window.addEventListener("resize", resize);
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(resize).observe(document.body);
+  }
+  setTimeout(resize, 300);
+
+  // ============================================================
+  // ANIMATION LOOP
+  // ============================================================
+  function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+  }
+
+  animate();
+  // ============================================================
+// FINAL DENSITY PATCH — add missing original-like details
+// ============================================================
+
+// ------------------------------------------------------------
+// TOP PLATFORM SMALL REACTOR / COLUMN CLUSTER
+// ------------------------------------------------------------
+const topCluster = [
+  [-5.8, 2.6, 0.26, 4.6],
+  [-4.9, 2.2, 0.24, 4.1],
+  [-4.0, 1.8, 0.22, 3.8],
+  [-3.0, 1.3, 0.25, 4.5],
+  [-2.0, 1.0, 0.23, 3.9],
+  [-1.0, 0.7, 0.22, 3.6],
+  [ 0.1, 0.5, 0.24, 4.2],
+  [ 1.1, 0.6, 0.23, 3.8],
+  [ 2.1, 0.8, 0.22, 3.5],
+  [ 3.0, 1.0, 0.24, 4.0],
+  [ 4.0, 1.3, 0.22, 3.6]
+];
+
+topCluster.forEach(([x, z, r, h], idx) => {
+  CYL(r, r, h, 20, M.pipe, x, 9.91 + h / 2, z);
+  CYL(0.05, 0.05, 0.28, 8, M.dark, x, 9.91 + h + 0.18, z);
+  TORUS(r + 0.02, 0.016, M.dark, x, 9.91 + h * 0.35, z);
+  TORUS(r + 0.02, 0.016, M.dark, x, 9.91 + h * 0.68, z);
+
+  // small nozzles
+  CYL(0.035, 0.035, 0.18, 8, M.dark, x + r + 0.14, 9.91 + h * 0.6, z);
+  CYL(0.035, 0.035, 0.18, 8, M.dark, x - r - 0.14, 9.91 + h * 0.42, z);
+
+  // rack connection
+  PIPE(x, 9.91 + h, z, x + 0.4, 15.2, -2.9, 0.018, M.pipe);
+});
+
+// ------------------------------------------------------------
+// TOP SMALL ROUND TANKS LIKE ORIGINAL
+// ------------------------------------------------------------
+const topRoundTanks = [
+  [-5.2, 1.8, 0.95, 1.8],
+  [-2.8, 1.2, 0.92, 1.8],
+  [-0.2, 0.9, 0.98, 1.9],
+  [ 2.6, 1.2, 0.90, 1.7],
+  [ 4.8, 1.8, 0.78, 1.5]
+];
+
+topRoundTanks.forEach(([x, z, r, h]) => {
+  CYL(r, r, h, 28, M.vessel, x, 10.81, z);
+  DOME(r, M.vesselTop, x, 11.71, z);
+  CYL(0.09, 0.09, 0.22, 8, M.pipe, x, 12.65, z);
+  CYL(0.05, 0.05, 0.18, 8, M.dark, x + 0.3, 12.45, z);
+  TORUS(r + 0.02, 0.02, M.dark, x, 9.95, z);
+});
+
+// ------------------------------------------------------------
+// TOP DENSE HEADER PIPING (black CAD look)
+// ------------------------------------------------------------
+for (let i = 0; i < 6; i++) {
+  const yy = 15.6 - i * 0.38;
+  PIPE(-7.0, yy, -3.6, 6.8, yy, -3.6, 0.026, M.dark);
+}
+
+for (let i = -6; i <= 6; i += 1.8) {
+  PIPE(i, 14.2, -3.6, i, 16.3, -3.6, 0.022, M.struct);
+}
+
+// top rear vertical risers
+for (let i = 0; i < 8; i++) {
+  const px = -6.2 + i * 1.65;
+  PIPE(px, 14.2, -3.6, px, 16.1, -3.6, 0.022, M.struct);
+}
+
+// ------------------------------------------------------------
+// MIDDLE FRONT ORIGINAL-LIKE MANIFOLD SECTION
+// ------------------------------------------------------------
+for (let i = 0; i < 12; i++) {
+  const px = -6.9 + i * 0.56;
+
+  CYL(0.08, 0.08, 4.9, 16, M.pipe, px, 2.45, -3.65);
+  CYL(0.06, 0.06, 4.2, 16, M.pipe, px + 0.12, 2.05, -3.15);
+
+  CYL(0.03, 0.03, 0.18, 8, M.dark, px, 5.0, -3.65);
+  CYL(0.03, 0.03, 0.18, 8, M.dark, px + 0.12, 4.2, -3.15);
+
+  TORUS(0.095, 0.012, M.dark, px, 2.0, -3.65);
+  TORUS(0.085, 0.011, M.dark, px + 0.12, 2.9, -3.15);
+  TORUS(0.085, 0.011, M.dark, px + 0.12, 3.8, -3.15);
+
+  // angled pipe links
+  PIPE(px, 1.2, -3.65, px + 0.28, 1.5, -4.2, 0.018, M.pipe);
+  PIPE(px, 2.2, -3.65, px + 0.32, 2.5, -4.2, 0.018, M.pipe);
+  PIPE(px, 3.2, -3.65, px + 0.36, 3.5, -4.2, 0.018, M.pipe);
+}
+
+// ------------------------------------------------------------
+// MIDDLE BLACK VALVE BANKS (missing in your render)
+// ------------------------------------------------------------
+const valveRows = [-3.9, -3.55, -3.2];
+for (let r = 0; r < valveRows.length; r++) {
+  const z = valveRows[r];
+  for (let i = 0; i < 14; i++) {
+    const x = -7.0 + i * 0.55;
+    CYL(0.045, 0.045, 0.12, 8, M.dark, x, 1.1 + r * 0.95, z);
+    BOX(0.14, 0.04, 0.04, M.dark, x + 0.1, 1.1 + r * 0.95, z);
+  }
+}
+
+// ------------------------------------------------------------
+// MIDDLE FILTER / PANEL MODULES — more like original
+// ------------------------------------------------------------
+const midBoxes = [
+  [-6.2, -2.0], [-5.2, -1.9], [-4.2, -1.85],
+  [-3.2, -1.8], [-2.2, -1.78], [-1.2, -1.75]
+];
+
+midBoxes.forEach(([x, z], idx) => {
+  BOX(0.75, 1.05, 0.65, M.panel, x, 1.0, z);
+  BOX(0.55, 0.12, 0.5, M.dark, x, 1.55, z);
+  PIPE(x, 1.6, z, x, 4.4, z - 0.1, 0.022, M.pipe);
+  PIPE(x - 0.38, 0.75, z, x - 0.9, 0.75, z - 0.35, 0.03, M.pipe);
+  PIPE(x + 0.38, 1.1, z, x + 0.95, 1.1, z - 0.35, 0.03, M.pipe);
+});
+
+// ------------------------------------------------------------
+// LOWER EXTRA VERTICAL TUBING BANKS
+// ------------------------------------------------------------
+for (let i = 0; i < 18; i++) {
+  const px = -7.2 + i * 0.42;
+  PIPE(px, 0.2, -4.9, px, 4.85, -4.0, 0.012, M.dark);
+}
+
+// ------------------------------------------------------------
+// LOWER REAR TANK GROUP (missing in your output)
+// ------------------------------------------------------------
+const rearTanks = [
+  [1.0, -0.4, 0.75, 3.0],
+  [2.4,  0.4, 0.68, 2.7],
+  [3.6, -1.0, 0.60, 2.4]
+];
+
+rearTanks.forEach(([x, z, r, h]) => {
+  CYL(r, r, h, 24, M.vessel, x, h / 2 + 0.25, z);
+  DOME(r, M.vesselTop, x, h + 0.2, z);
+  TORUS(r + 0.02, 0.02, M.dark, x, 0.45, z);
+  CYL(0.06, 0.06, 0.18, 8, M.pipe, x, h + 0.95, z);
+});
+
+// ------------------------------------------------------------
+// FRONT SMALL PUMP SETS — closer to original floor layout
+// ------------------------------------------------------------
+const extraPumps = [
+  [-6.8, -6.2], [-5.0, -6.2], [-3.2, -6.2]
+];
+
+extraPumps.forEach(([px, pz]) => {
+  BOX(1.1, 0.12, 0.75, M.platform, px, 0.08, pz);
+  CYL(0.20, 0.20, 0.55, 16, M.dark, px - 0.12, 0.28, pz, Math.PI / 2);
+  BOX(0.42, 0.24, 0.24, M.pump, px + 0.2, 0.24, pz);
+  CYL(0.05, 0.05, 0.18, 8, M.pipe, px - 0.38, 0.34, pz);
+  CYL(0.05, 0.05, 0.18, 8, M.pipe, px + 0.42, 0.34, pz);
+});
+
+// ------------------------------------------------------------
+// SIDE TANK TOP MANWAY / NOZZLES (missing detail)
+// ------------------------------------------------------------
+const sideNozzles = [
+  [16.5, -3.5],
+  [16.95, -3.15],
+  [16.1, -3.15],
+  [16.5, -2.95],
+  [16.5, -4.05],
+  [17.1, -3.7]
+];
+
+sideNozzles.forEach(([x, z], idx) => {
+  CYL(0.06, 0.06, 0.18, 8, M.dark, x, 7.45, z);
+});
+
+TORUS(0.35, 0.05, M.dark, 16.5, 7.35, -3.5);
+
+// ------------------------------------------------------------
+// SIDE TANK EXTRA GROUND PUMP
+// ------------------------------------------------------------
+BOX(1.2, 0.12, 0.8, M.platform, 14.8, 0.08, -2.0);
+CYL(0.20, 0.20, 0.6, 16, M.dark, 14.8, 0.3, -2.0, Math.PI / 2);
+BOX(0.4, 0.24, 0.24, M.pump, 15.15, 0.24, -2.0);
+
+// ------------------------------------------------------------
+// EXTRA THIN HANDRAIL / SUPPORT FEEL LIKE CAD
+// ------------------------------------------------------------
+for (let i = -6.8; i <= 6.0; i += 1.2) {
+  PIPE(i, 4.9, 5.3, i, 5.55, 5.3, 0.015, M.dark);
+  PIPE(i, 9.9, 5.3, i, 10.55, 5.3, 0.015, M.dark);
+}
+
+// ------------------------------------------------------------
+// EXTRA TOP PLATFORM SUPPORT TUBING
+// ------------------------------------------------------------
+for (let i = 0; i < 8; i++) {
+  const x = -6.5 + i * 1.6;
+  PIPE(x, 9.9, -1.8, x, 14.0, -2.6, 0.018, M.struct);
+}
+})();
+
+</script>
+</body>
+</html>

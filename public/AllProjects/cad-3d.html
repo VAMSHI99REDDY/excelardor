@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OFF Gas Treatment Plant – 3D CAD Model</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#ffffff; font-family:'Courier New',monospace; overflow:hidden; }
+  canvas { display:block; }
+  #hud { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; }
+
+  #title-bar {
+    position:absolute; top:16px; left:50%; transform:translateX(-50%);
+    background:rgba(0,0,0,0.8); border:1px solid #00aaff;
+    padding:8px 32px; color:#00aaff; font-size:12px; letter-spacing:3px;
+    text-align:center; white-space:nowrap;
+  }
+
+
+  #view-controls {
+    position:absolute; top:76px; left:20px;
+    display:flex; flex-direction:column; gap:5px; pointer-events:all;
+  }
+  .view-btn {
+    background:rgba(0,0,0,0.8); border:1px solid #334; color:#99aacc;
+    font-family:'Courier New',monospace; font-size:9px; letter-spacing:1px;
+    padding:5px 10px; cursor:pointer; text-transform:uppercase; transition:all .2s;
+  }
+  .view-btn:hover { border-color:#00aaff; color:#00aaff; }
+
+  #legend {
+    position:absolute; top:76px; right:20px;
+    background:rgba(0,0,0,0.8); border:1px solid #334;
+    padding:12px 16px; color:#ccc; font-size:10px; line-height:2;
+  }
+  #legend h3 { color:#00aaff; font-size:9px; letter-spacing:2px; margin-bottom:6px; }
+  #legend li { list-style:none; display:flex; align-items:center; gap:8px; }
+  #legend li .dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+  #controls-info {
+    position:absolute; bottom:16px; left:50%; transform:translateX(-50%);
+    background:rgba(0,0,0,0.7); border:1px solid #334;
+    padding:8px 20px; color:#667; font-size:10px; letter-spacing:1px; white-space:nowrap;
+  }
+  #controls-info kbd { background:#111; border:1px solid #444; color:#aaa; padding:1px 5px; border-radius:2px; font-family:inherit; }
+
+  #label-toggle {
+    position:absolute; bottom:52px; left:50%; transform:translateX(-50%);
+    background:rgba(0,0,0,0.8); border:1px solid #334; color:#99aacc;
+    font-family:'Courier New',monospace; font-size:9px; letter-spacing:2px;
+    padding:5px 14px; cursor:pointer; text-transform:uppercase;
+    pointer-events:all; transition:all .2s;
+  }
+  #label-toggle:hover { border-color:#00aaff; color:#00aaff; }
+
+  #labels-svg { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; }
+  .lline { stroke:#00aaff; stroke-width:0.8; stroke-dasharray:4,2; }
+  .ldot  { fill:#00aaff; }
+  .lbg   { fill:rgba(0,10,30,0.75); }
+  .ltxt  { fill:#aaddff; font-family:'Courier New',monospace; font-size:10px; letter-spacing:1px; }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    #title-bar { width: 90%; white-space: normal; padding: 6px 16px; font-size: 10px; top: 10px; letter-spacing: 1.5px; }
+    #title-bar span { font-size: 7px; }
+    #view-controls { top: auto; bottom: 85px; left: 50%; transform: translateX(-50%); flex-direction: row; flex-wrap: wrap; justify-content: center; width: 95%; }
+    .view-btn { padding: 4px 8px; font-size: 8px; }
+    #legend { display: none; }
+    #controls-info { font-size: 8px; padding: 6px 16px; width: 90%; text-align: center; }
+    #label-toggle { bottom: 50px; padding: 4px 10px; font-size: 8px; }
+  }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud">
+  <div id="title-bar">OFF GAS TREATMENT PLANT </div>
+
+
+
+  
+
+  <svg id="labels-svg"></svg>
+
+
+ 
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ─── Renderer ───
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xffffff);
+scene.fog = new THREE.FogExp2(0x0a0e1a, 0.008);
+
+const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 500);
+camera.position.set(-18, 14, 18);
+
+// Initialize camera variables early to prevent ReferenceError in resize()
+let sph={theta:-0.55, phi:0.85, r:42};
+let tgt=new THREE.Vector3(0,2,0);
+let autoRot=true;
+
+function resize(){
+  const W=window.innerWidth, H=window.innerHeight;
+  renderer.setSize(W,H);
+  camera.aspect=W/H; 
+  
+  // Responsive camera zoom
+  if (W < H) {
+    sph.r = 60; // Zoom out for portrait
+  } else {
+    sph.r = 42;
+  }
+  
+  camera.updateProjectionMatrix();
+}
+resize(); window.addEventListener('resize',resize);
+if (typeof ResizeObserver !== 'undefined') {
+  new ResizeObserver(resize).observe(document.body);
+}
+setTimeout(resize, 300);
+canvas.style.touchAction = 'none';
+
+// ─── Lighting ───
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+const sun = new THREE.DirectionalLight(0xfff8f0, 1.3);
+sun.position.set(20,30,15); sun.castShadow=true;
+sun.shadow.mapSize.set(4096,4096);
+sun.shadow.camera.left=-60; sun.shadow.camera.right=60;
+sun.shadow.camera.top=30; sun.shadow.camera.bottom=-30;
+scene.add(sun);
+const fill = new THREE.DirectionalLight(0x99bbdd,0.4);
+fill.position.set(-20,10,-10); scene.add(fill);
+const rim = new THREE.DirectionalLight(0xaaccff,0.2);
+rim.position.set(0,5,30); scene.add(rim);
+
+// Grid
+// const grid = new THREE.GridHelper(120,60,0xcccccc,0xeeeeee);
+// grid.position.y=-0.01; scene.add(grid);
+
+// ─── Materials ───
+const M = {
+  slab:     new THREE.MeshStandardMaterial({color:0xb0b8c8, metalness:0.1, roughness:0.7}),
+  slabGrn:  new THREE.MeshStandardMaterial({color:0x4a7a5a, metalness:0.1, roughness:0.8}),
+  cell:     new THREE.MeshStandardMaterial({color:0xc8c0a0, metalness:0.15, roughness:0.65}),
+  cellDark: new THREE.MeshStandardMaterial({color:0xa8a090, metalness:0.2, roughness:0.6}),
+  cellLid:  new THREE.MeshStandardMaterial({color:0x7799bb, metalness:0.3, roughness:0.5}),
+  frame:    new THREE.MeshStandardMaterial({color:0x889aaa, metalness:0.55, roughness:0.4}),
+  tank:     new THREE.MeshStandardMaterial({color:0xbbbbbb, metalness:0.5, roughness:0.35}),
+  pipe:     new THREE.MeshStandardMaterial({color:0x778899, metalness:0.6, roughness:0.3}),
+  pipeRed:  new THREE.MeshStandardMaterial({color:0x993322, metalness:0.5, roughness:0.3}),
+  stack:    new THREE.MeshStandardMaterial({color:0x555566, metalness:0.5, roughness:0.4}),
+  pump:     new THREE.MeshStandardMaterial({color:0x445566, metalness:0.6, roughness:0.35}),
+  equip:    new THREE.MeshStandardMaterial({color:0x667788, metalness:0.45, roughness:0.45}),
+  green:    new THREE.MeshStandardMaterial({color:0x559977, metalness:0.2, roughness:0.6}),
+  rail:     new THREE.MeshStandardMaterial({color:0x334455, metalness:0.7, roughness:0.3}),
+};
+
+const root = new THREE.Group(); scene.add(root);
+
+function addBox(mat,w,h,d,x,y,z,name){
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat);
+  m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true;
+  if(name) m.name=name; root.add(m); return m;
+}
+function addCyl(mat,rt,rb,h,seg,x,y,z,rx,rz){
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg), mat);
+  m.position.set(x,y,z);
+  if(rx) m.rotation.x=rx;
+  if(rz) m.rotation.z=rz;
+  m.castShadow=true; m.receiveShadow=true;
+  root.add(m); return m;
+}
+function addPipe(mat,r,x1,y1,z1,x2,y2,z2){
+  const dir=new THREE.Vector3(x2-x1,y2-y1,z2-z1);
+  const len=dir.length();
+  const mid=new THREE.Vector3((x1+x2)/2,(y1+y2)/2,(z1+z2)/2);
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,len,8),mat);
+  m.position.copy(mid);
+  m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.clone().normalize());
+  m.castShadow=true; root.add(m); return m;
+}
+
+// ════════════════════════════════════════
+//  FOUNDATION SLAB
+// ════════════════════════════════════════
+// Main slab — long
+addBox(M.slab, 68, 0.4, 12, 0, -0.2, 0, 'Foundation Slab');
+
+// ════════════════════════════════════════
+//  PROCESS CELL BANK  (right 2/3 of slab)
+//  ~42 cells, each ~0.9 wide, along X
+// ════════════════════════════════════════
+const cellCount = 44;
+const cellW = 0.88, cellH = 1.5, cellD = 8.0;
+const cellStartX = 0.0;
+const cellBaseY = 0.2 + cellH/2;
+
+// Green base under cells
+addBox(M.green, cellCount*cellW + 0.4, 0.22, cellD+0.4, cellStartX+(cellCount*cellW)/2-cellW/2, 0.31, 0.0);
+
+for(let i=0;i<cellCount;i++){
+  const cx = cellStartX + i*cellW;
+  // Cell body
+  addBox(M.cell, cellW-0.05, cellH, cellD-0.1, cx, cellBaseY, 0);
+  // Cell lid (top cover, blue-gray)
+  addBox(M.cellLid, cellW-0.06, 0.12, cellD-0.15, cx, cellBaseY+cellH/2+0.06, 0);
+  // Cell divider lines (dark strips)
+  if(i%2===0) addBox(M.cellDark, 0.04, cellH, cellD, cx+cellW/2-0.02, cellBaseY, 0);
+}
+
+// Rails/beam running along top of cell bank
+addBox(M.rail, cellCount*cellW+0.3, 0.12, 0.15, cellStartX+(cellCount*cellW)/2-cellW/2, cellBaseY+cellH+0.18, cellD/2-0.2);
+addBox(M.rail, cellCount*cellW+0.3, 0.12, 0.15, cellStartX+(cellCount*cellW)/2-cellW/2, cellBaseY+cellH+0.18, -cellD/2+0.2);
+
+// Pipe/bus-bar run on top front/back of cell bank
+addBox(M.pipe, cellCount*cellW+0.2, 0.1, 0.1, cellStartX+(cellCount*cellW)/2-cellW/2, cellBaseY+cellH+0.38, cellD/2-0.5);
+addBox(M.pipe, cellCount*cellW+0.2, 0.1, 0.1, cellStartX+(cellCount*cellW)/2-cellW/2, cellBaseY+cellH+0.38, -cellD/2+0.5);
+
+// End wall panels
+addBox(M.frame, 0.2, cellH+0.5, cellD, cellStartX-0.15, cellBaseY, 0);
+addBox(M.frame, 0.2, cellH+0.5, cellD, cellStartX+(cellCount-1)*cellW+0.15, cellBaseY, 0);
+
+// ════════════════════════════════════════
+//  UTILITY SKID / LEFT SECTION
+//  X range: roughly -34 to -1 (left of cells)
+// ════════════════════════════════════════
+
+// ── Skid floor plates ──
+addBox(M.frame, 10, 0.12, 8, -28, 0.26, 0, 'Utility Skid');
+addBox(M.frame, 8,  0.12, 8, -18, 0.26, 0);
+addBox(M.frame, 6,  0.12, 8, -10, 0.26, 0);
+
+// ── Exhaust stack (tall chimney, left side) ──
+addCyl(M.stack, 0.22,0.22,9,12, -31,4.8,1.5);        // main stack
+addCyl(M.stack, 0.3,0.22,0.3,12, -31,9.35,1.5);       // cap
+// Elbow/transition at base
+addBox(M.stack, 0.5,0.5,0.5, -31,0.55,1.5);
+// Horizontal duct to scrubber
+addPipe(M.stack, 0.2, -31,1.0,1.5, -29,1.0,1.5);
+
+// ── Scrubber / absorber columns (2 tall vertical vessels) ──
+// Column 1
+addCyl(M.tank, 0.45,0.45,4.5,16, -24,2.65,1.0);
+addCyl(M.tank, 0.5,0.45,0.15,16, -24,5.0,1.0);    // top flange
+addCyl(M.tank, 0.5,0.45,0.15,16, -24,0.4,1.0);    // bottom flange
+// Column 2
+addCyl(M.tank, 0.4,0.4,4.0,16, -21,2.4,0.5);
+addCyl(M.tank, 0.44,0.4,0.12,16, -21,4.46,0.5);
+addCyl(M.tank, 0.44,0.4,0.12,16, -21,0.36,0.5);
+
+// Connecting pipes between columns
+addPipe(M.pipe, 0.08, -24,4.8,1.0, -21,4.2,0.5);
+addPipe(M.pipe, 0.06, -24,4.8,1.0, -24,5.5,1.0);
+addPipe(M.pipe, 0.06, -21,4.2,0.5, -21,5.0,0.5);
+// Loop pipe at top
+addPipe(M.pipe, 0.06, -24,5.5,1.0, -21,5.0,0.5);
+
+// ── Large storage tank (cylindrical, right of columns) ──
+addCyl(M.tank, 1.1,1.1,2.5,20, -16,1.55,0.5, 0,0);     // main tank
+addCyl(M.tank, 1.15,1.15,0.1,20, -16,2.85,0.5);          // top cap
+addCyl(M.tank, 0.15,0.15,0.4,8, -16,3.0,0.5);            // vent pipe
+
+// ── Rectangular equipment boxes / filter units ──
+addBox(M.equip, 2.2,1.0,1.8, -31,0.7,-2.0, 'Filter/Pump Unit');
+addBox(M.equip, 1.8,0.9,1.6, -28,0.65,-1.8);
+addBox(M.equip, 2.0,0.8,2.0, -22,0.6,-2.2);
+addBox(M.equip, 1.5,0.7,1.5, -12,0.55,-2.0);
+
+// Pumps (small cylinders on frames)
+addCyl(M.pump, 0.22,0.22,0.6,10, -19,0.6,1.5, Math.PI/2);
+addCyl(M.pump, 0.22,0.22,0.6,10, -17,0.6,1.5, Math.PI/2);
+addBox(M.pump, 0.6,0.3,0.4, -19,0.45,1.5);
+addBox(M.pump, 0.6,0.3,0.4, -17,0.45,1.5);
+
+// ── Pipe rack (runs from utility skid to cell bank) ──
+// Main pipe rack supports (vertical)
+for(let px=-12; px<=0; px+=3){
+  addBox(M.rail, 0.12,2.0,0.12, px,1.2,3.5);
+  addBox(M.rail, 0.12,2.0,0.12, px,1.2,-3.5);
+  // cross beam
+  addBox(M.rail, 0.08,0.08,7.2, px,2.15,0);
+}
+// Horizontal pipe runs on rack
+const pipeColors=[M.pipe, M.pipeRed, M.pipe, M.pipeRed];
+for(let pi=0;pi<4;pi++){
+  addBox(pipeColors[pi], 13,0.1,0.1, -6.5,2.2+pi*0.15,-2.5+pi*0.3);
+}
+
+// ── Feed connection header to cell bank ──
+addBox(M.pipe, 1.2,0.15,0.15, -0.6,2.1,3.2);
+addBox(M.pipe, 1.2,0.15,0.15, -0.6,2.1,-3.2);
+
+// ─── Overhead pipe bridge (large pipes going up from utility skid) ───
+// Main riser 1
+addPipe(M.pipe, 0.12, -24,5.0,1.0, -24,6.5,1.0);
+addPipe(M.pipe, 0.12, -24,6.5,1.0, -22,6.5,0.5);
+addPipe(M.pipe, 0.12, -22,6.5,0.5, -21,5.0,0.5);
+// Main riser 2
+addPipe(M.pipe, 0.1, -21,5.0,0.5, -21,7.0,0.5);
+addPipe(M.pipe, 0.1, -21,7.0,0.5, -18,7.0,0.5);
+addPipe(M.pipe, 0.1, -18,7.0,0.5, -18,2.85,0.5);
+
+// ── Small junction boxes on cells ──
+for(let i=0;i<cellCount;i+=4){
+  const cx=cellStartX+i*cellW;
+  addBox(M.frame, 0.25,0.25,0.25, cx, cellBaseY+cellH+0.55, cellD/2-0.1);
+}
+
+// ════════════════════════════════════════
+//  LABEL ANCHORS
+// ════════════════════════════════════════
+const labelDefs = [
+  {name:'Foundation Slab',      world:new THREE.Vector3(-10, -0.1, -6.5)},
+  {name:'Cell Bank (44 Cells)', world:new THREE.Vector3(18,  2.4,  5.0)},
+  {name:'Cell Covers / Lids',   world:new THREE.Vector3(10,  2.3,  4.5)},
+  {name:'Pipe Rack',            world:new THREE.Vector3(-6,  2.5,  4.5)},
+  {name:'Storage Tank',         world:new THREE.Vector3(-16, 3.0,  2.5)},
+  {name:'Scrubber Columns',     world:new THREE.Vector3(-22, 5.5,  2.5)},
+  {name:'Exhaust Stack',        world:new THREE.Vector3(-31, 9.5,  2.0)},
+  {name:'Utility Skid / Pumps', world:new THREE.Vector3(-18, 1.2, -3.5)},
+  {name:'Process Piping',       world:new THREE.Vector3(-4,  2.6, -4.0)},
+];
+
+// ─── SVG Label System ───
+let labelsVisible = true;
+const svg = document.getElementById('labels-svg');
+const labelEls = labelDefs.map(ld => {
+  const g   = document.createElementNS('http://www.w3.org/2000/svg','g');
+  const ln  = document.createElementNS('http://www.w3.org/2000/svg','line');
+  ln.setAttribute('class','lline');
+  const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  dot.setAttribute('r','3'); dot.setAttribute('class','ldot');
+  const bg  = document.createElementNS('http://www.w3.org/2000/svg','rect');
+  bg.setAttribute('rx','2'); bg.setAttribute('class','lbg');
+  const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+  txt.setAttribute('class','ltxt'); txt.textContent = ld.name;
+  g.append(ln,dot,bg,txt); svg.appendChild(g);
+  return {g,ln,dot,bg,txt};
+});
+
+function w2s(v3){
+  const v=v3.clone(); v.project(camera);
+  return {x:(v.x+1)/2*innerWidth, y:(-v.y+1)/2*innerHeight, z:v.z};
+}
+function updateLabels(){
+  if(!labelsVisible) return;
+  labelDefs.forEach((ld,i)=>{
+    const wp=ld.world.clone(); root.localToWorld(wp);
+    const s=w2s(wp);
+    if(s.z>1){labelEls[i].g.style.display='none';return;}
+    labelEls[i].g.style.display='';
+    const offX = s.x>innerWidth/2 ? -ld.name.length*6-12 : 12;
+    const tx=s.x+offX, ty=s.y-6;
+    labelEls[i].dot.setAttribute('cx',s.x); labelEls[i].dot.setAttribute('cy',s.y);
+    labelEls[i].ln.setAttribute('x1',s.x); labelEls[i].ln.setAttribute('y1',s.y);
+    labelEls[i].ln.setAttribute('x2',tx); labelEls[i].ln.setAttribute('y2',ty+8);
+    labelEls[i].txt.setAttribute('x',tx); labelEls[i].txt.setAttribute('y',ty);
+    const tl=ld.name.length*6.2;
+    labelEls[i].bg.setAttribute('x',tx-2); labelEls[i].bg.setAttribute('y',ty-12);
+    labelEls[i].bg.setAttribute('width',tl+4); labelEls[i].bg.setAttribute('height',15);
+  });
+}
+function toggleLabels(){
+  labelsVisible=!labelsVisible;
+  svg.style.display=labelsVisible?'':'none';
+  document.getElementById('label-toggle').textContent=labelsVisible?'HIDE LABELS':'SHOW LABELS';
+}
+
+// ─── Orbit Controls ───
+let drag=false, rDrag=false, prev={x:0,y:0};
+
+function applyCamera(){
+  camera.position.set(
+    tgt.x+sph.r*Math.sin(sph.phi)*Math.sin(sph.theta),
+    tgt.y+sph.r*Math.cos(sph.phi),
+    tgt.z+sph.r*Math.sin(sph.phi)*Math.cos(sph.theta)
+  );
+  camera.lookAt(tgt);
+}
+applyCamera();
+
+canvas.addEventListener('mousedown',e=>{drag=true;rDrag=(e.button===2);prev={x:e.clientX,y:e.clientY};e.preventDefault();});
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
+window.addEventListener('mouseup',()=>drag=false);
+window.addEventListener('mousemove',e=>{
+  if(!drag)return;
+  const dx=(e.clientX-prev.x)*0.004, dy=(e.clientY-prev.y)*0.004;
+  if(rDrag){
+    const r=new THREE.Vector3().crossVectors(camera.position.clone().sub(tgt).normalize(),camera.up).normalize();
+    tgt.addScaledVector(r,-dx*6); tgt.y+=dy*6;
+  } else {
+    sph.theta-=dx;
+    sph.phi=Math.max(0.1,Math.min(Math.PI-0.05,sph.phi+dy));
+  }
+  prev={x:e.clientX,y:e.clientY}; applyCamera();
+});
+canvas.addEventListener('wheel',e=>{sph.r=Math.max(8,Math.min(100,sph.r+e.deltaY*0.04));applyCamera();},{passive:true});
+
+// Touch
+let ltd=0;
+canvas.addEventListener('touchstart',e=>{if(e.touches.length===1){drag=true;prev={x:e.touches[0].clientX,y:e.touches[0].clientY};}if(e.touches.length===2){ltd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);}},{passive:true});
+canvas.addEventListener('touchend',()=>drag=false);
+canvas.addEventListener('touchmove',e=>{
+  if(e.touches.length===1&&drag){const dx=(e.touches[0].clientX-prev.x)*0.006,dy=(e.touches[0].clientY-prev.y)*0.006;sph.theta-=dx;sph.phi=Math.max(0.1,Math.min(Math.PI-0.05,sph.phi+dy));prev={x:e.touches[0].clientX,y:e.touches[0].clientY};applyCamera();}
+  if(e.touches.length===2){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);sph.r=Math.max(8,Math.min(100,sph.r-(d-ltd)*0.08));ltd=d;applyCamera();}
+},{passive:true});
+
+function setView(v){
+  const views={
+    iso:  {theta:-0.55,phi:0.85,r:42,tx:0,ty:2,tz:0},
+    front:{theta:0,phi:Math.PI/2,r:42,tx:0,ty:2,tz:0},
+    side: {theta:Math.PI/2,phi:Math.PI/2,r:42,tx:0,ty:2,tz:0},
+    top:  {theta:0,phi:0.05,r:42,tx:0,ty:2,tz:0},
+    end:  {theta:Math.PI,phi:Math.PI/2,r:42,tx:0,ty:2,tz:0},
+  };
+  const vd=views[v]; sph={...vd}; tgt.set(vd.tx,vd.ty,vd.tz); applyCamera();
+}
+
+function animate(){
+  requestAnimationFrame(animate);
+  if(autoRot){sph.theta+=0.0015;applyCamera();}
+  renderer.render(scene,camera);
+  updateLabels();
+}
+animate();
+</script>
+</body>
+</html>

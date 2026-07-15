@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>3D CAD Model - Industrial Hopper</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#ffffff; overflow:hidden; }
+canvas { display:block; }
+#controls {
+  position:absolute; bottom:16px; left:50%; transform:translateX(-50%);
+  background:rgba(255,255,255,0.93); border:1px solid #ccc;
+  border-radius:8px; padding:8px 18px; font:13px Arial; color:#444;
+  display:flex; gap:18px; box-shadow:0 2px 8px rgba(0,0,0,0.12);
+}
+#controls span { display:flex; align-items:center; gap:5px; }
+
+@media (max-width: 768px) {
+  #controls { 
+    width: 90%; 
+    flex-wrap: wrap; 
+    justify-content: center; 
+    gap: 8px; 
+    padding: 6px 14px; 
+    font-size: 10px;
+    bottom: 10px;
+  }
+  #controls span:not(:last-of-type) { display: none; } /* Show only one instruction on mobile */
+}
+</style>
+</head>
+<body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ─── RENDERER ────────────────────────────────────────────────────────────────
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+renderer.domElement.style.touchAction = 'none';
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xffffff);
+
+// ─── CAMERA (isometric-like 45° view matching image) ─────────────────────────
+const camera = new THREE.PerspectiveCamera(38, window.innerWidth/window.innerHeight, 0.1, 500);
+// Positioned to match the top-left isometric view in the image
+let sph = { theta: -2.35, phi: 0.82, r: 22 };
+let target = new THREE.Vector3(0, 4.5, 0);
+
+function applyCam() {
+  camera.position.set(
+    target.x + sph.r * Math.sin(sph.phi) * Math.cos(sph.theta),
+    target.y + sph.r * Math.cos(sph.phi),
+    target.z + sph.r * Math.sin(sph.phi) * Math.sin(sph.theta)
+  );
+  camera.lookAt(target);
+}
+applyCam();
+
+// ─── LIGHTS ──────────────────────────────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const sun = new THREE.DirectionalLight(0xffffff, 0.9);
+sun.position.set(8, 18, 12); sun.castShadow = true;
+sun.shadow.mapSize.set(2048,2048);
+scene.add(sun);
+const fill = new THREE.DirectionalLight(0xffffff, 0.35);
+fill.position.set(-10, 8, -6);
+scene.add(fill);
+const rim = new THREE.DirectionalLight(0xffffff, 0.2);
+rim.position.set(0, -5, 15);
+scene.add(rim);
+
+// ─── MATERIALS ───────────────────────────────────────────────────────────────
+const M = {
+  frame:    new THREE.MeshPhongMaterial({ color:0x8a9aaa, specular:0x334455, shininess:60 }),
+  frameD:   new THREE.MeshPhongMaterial({ color:0x6a7a8a, specular:0x223344, shininess:40 }),
+  platform: new THREE.MeshPhongMaterial({ color:0xc8c4b0, specular:0x443322, shininess:30 }),
+  hopper:   new THREE.MeshPhongMaterial({ color:0x3eb550, specular:0x114411, shininess:50, side:THREE.DoubleSide }),
+  hopperDk: new THREE.MeshPhongMaterial({ color:0x2d8f3c, specular:0x113311, shininess:40, side:THREE.DoubleSide }),
+  innerPlate: new THREE.MeshPhongMaterial({ color:0xa8b8c8, specular:0x223344, shininess:50, transparent:true, opacity:0.85 }),
+  red:      new THREE.MeshPhongMaterial({ color:0xd42b2b, specular:0x441111, shininess:50 }),
+  purple:   new THREE.MeshPhongMaterial({ color:0x6870c8, specular:0x221144, shininess:50 }),
+  cyan:     new THREE.MeshPhongMaterial({ color:0x18b8cc, specular:0x113344, shininess:60 }),
+  yellow:   new THREE.MeshPhongMaterial({ color:0xe8c820, specular:0x554400, shininess:80 }),
+  yellowDk: new THREE.MeshPhongMaterial({ color:0xb89810, specular:0x443300, shininess:60 }),
+  stair:    new THREE.MeshPhongMaterial({ color:0x7a8a96, specular:0x223344, shininess:30 }),
+  stairDk:  new THREE.MeshPhongMaterial({ color:0x5a6a76, specular:0x112233, shininess:20 }),
+  rail:     new THREE.MeshPhongMaterial({ color:0x2e7d32, specular:0x113311, shininess:60 }),
+  leg:      new THREE.MeshPhongMaterial({ color:0xb8a890, specular:0x332211, shininess:20 }),
+  legDk:    new THREE.MeshPhongMaterial({ color:0x988870, specular:0x221100, shininess:15 }),
+  pipe:     new THREE.MeshPhongMaterial({ color:0x5a6a7a, specular:0x334455, shininess:80 }),
+  bolt:     new THREE.MeshPhongMaterial({ color:0x7a8a9a, specular:0x445566, shininess:90 }),
+  boltDk:   new THREE.MeshPhongMaterial({ color:0x4a5a6a, specular:0x334455, shininess:70 }),
+};
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function addBox(w,h,d,mat,x,y,z, rx,ry,rz) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat);
+  m.position.set(x,y,z);
+  if(rx) m.rotation.x=rx; if(ry) m.rotation.y=ry; if(rz) m.rotation.z=rz;
+  m.castShadow=true; m.receiveShadow=true; scene.add(m); return m;
+}
+function addCyl(rt,rb,h,seg,mat,x,y,z,rx,ry,rz) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg||16), mat);
+  m.position.set(x,y,z);
+  if(rx) m.rotation.x=rx; if(ry) m.rotation.y=ry; if(rz) m.rotation.z=rz;
+  m.castShadow=true; m.receiveShadow=true; scene.add(m); return m;
+}
+function addTube(pts, r, mat) {
+  const curve = new THREE.CatmullRomCurve3(pts);
+  const m = new THREE.Mesh(new THREE.TubeGeometry(curve,2,r,8,false), mat);
+  m.castShadow=true; scene.add(m); return m;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// COORDINATE SYSTEM:
+//  Y = up
+//  X = right
+//  Z = forward (toward viewer)
+// Structure sits on Y=0, staircase offset in +X direction
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ─── 1. BASE LEGS (tan/beige) ────────────────────────────────────────────────
+// 2 front legs (tall), 2 back legs — L-section profile
+const legH = 2.5, legW = 0.22, legT = 0.06;
+// Main vertical legs - 4 corners of the machine base
+const legPositions = [[-1.55, legH/2, 1.2], [-1.55, legH/2, -1.2],
+                       [1.55, legH/2, 1.2],  [1.55, legH/2, -1.2]];
+legPositions.forEach(([lx,ly,lz]) => {
+  addBox(legW, legH, legT, M.leg, lx, ly, lz);         // front face
+  addBox(legT, legH, legW, M.legDk, lx+(lx>0?legW/2:-legW/2), ly, lz); // side
+});
+// Base horizontal connectors at bottom (ground level)
+addBox(3.3, legT*1.5, legT, M.leg,  0, legT*0.75, 1.2);
+addBox(3.3, legT*1.5, legT, M.leg,  0, legT*0.75,-1.2);
+addBox(legT, legT*1.5, 2.55, M.leg,-1.55, legT*0.75, 0);
+addBox(legT, legT*1.5, 2.55, M.leg, 1.55, legT*0.75, 0);
+
+// ─── 2. MAIN STEEL FRAME (gray channel sections) ─────────────────────────────
+const fBase = legH;           // frame starts at top of legs = 2.5
+const fTop  = fBase + 5.5;   // frame top = 8.0
+const fw    = 0.18;           // frame member width
+const fd    = 0.18;           // frame member depth
+
+// 4 MAIN VERTICAL COLUMNS
+const colX = [-1.5, 1.5];
+const colZ = [-1.15, 1.15];
+colX.forEach(cx => colZ.forEach(cz => {
+  addBox(fw, fTop-fBase, fd, M.frame, cx, fBase+(fTop-fBase)/2, cz);
+}));
+
+// HORIZONTAL FRAME RINGS at 4 levels
+const ringYs = [fBase, fBase+1.4, fBase+3.0, fTop];
+ringYs.forEach(ry => {
+  addBox(3.18, fd, fw, M.frame,  0,  ry, 1.15);
+  addBox(3.18, fd, fw, M.frame,  0,  ry,-1.15);
+  addBox(fw, fd, 2.48, M.frame,-1.5, ry, 0);
+  addBox(fw, fd, 2.48, M.frame, 1.5, ry, 0);
+  // Corner gussets (small blocks where columns meet rings)
+  colX.forEach(cx => colZ.forEach(cz => {
+    addBox(fw*1.4, fw*1.4, fd*1.4, M.frameD, cx, ry, cz);
+  }));
+});
+
+// SECONDARY HORIZONTAL MEMBERS (mid levels)
+[fBase+0.7, fBase+2.1, fBase+4.2].forEach(ry => {
+  addBox(3.18, fw*0.8, fw*0.8, M.frameD,  0,  ry, 1.15);
+  addBox(3.18, fw*0.8, fw*0.8, M.frameD,  0,  ry,-1.15);
+});
+
+// Diagonal tie rods (short bolts visible on frame)
+for(let i=0;i<3;i++){
+  addCyl(0.04,0.04,0.25,8,M.bolt, -1.5, fBase+0.5+i*1.5,  1.15);
+  addCyl(0.04,0.04,0.25,8,M.bolt,  1.5, fBase+0.5+i*1.5,  1.15);
+  addCyl(0.04,0.04,0.25,8,M.bolt, -1.5, fBase+0.5+i*1.5, -1.15);
+  addCyl(0.04,0.04,0.25,8,M.bolt,  1.5, fBase+0.5+i*1.5, -1.15);
+}
+
+// ─── 3. TOP PLATFORM (beige/sandy plate) ─────────────────────────────────────
+addBox(3.18, 0.22, 2.48, M.platform, 0, fTop+0.11, 0);
+// Platform edge lips
+addBox(3.18, 0.08, 0.06, M.frameD,  0, fTop+0.26,  1.15);
+addBox(3.18, 0.08, 0.06, M.frameD,  0, fTop+0.26, -1.15);
+addBox(0.06, 0.08, 2.48, M.frameD, -1.5, fTop+0.26, 0);
+addBox(0.06, 0.08, 2.48, M.frameD,  1.5, fTop+0.26, 0);
+
+// ─── 4. VERTICAL PIPES/RODS ON TOP PLATFORM ──────────────────────────────────
+// 1 tall central pipe
+addCyl(0.08,0.08, 3.5, 12, M.pipe, 0, fTop+0.22+1.75, 0);
+// 4 shorter corner rods
+const rodPos = [[-0.75,0.65],[0.75,0.65],[0.75,-0.65],[-0.75,-0.65]];
+
+rodPos.forEach(([px,pz]) => {
+
+  // LONG CONTINUOUS ROD (no gap)
+  addCyl(0.055, 0.055, 5.3, 10, M.pipe, px, fTop - 1.5, pz);
+
+  // TOP FLANGE (keep this as it is)
+  addCyl(0.1, 0.1, 0.08, 10, M.bolt, px, fTop + 0.26, pz);
+
+});
+// Platform bolt heads (square bolts on rim)
+for(let i=-1;i<=1;i+=2){
+  for(let j=-0.5;j<=0.5;j+=0.5){
+    addCyl(0.05,0.05,0.12,8,M.bolt, i*1.45, fTop+0.26, j);
+    addCyl(0.05,0.05,0.12,8,M.bolt, j, fTop+0.26, i*1.1);
+  }
+}
+
+// ─── 5. HOPPER (green funnel) ────────────────────────────────────────────────
+// The hopper sits between fBase+1.4 and fBase+3.0
+// It's a truncated pyramid: large top opening, small bottom neck
+const hTop = fBase + 3.0;   // hopper top (sits under top half of frame)
+const hBot = fBase + 1.4;   // hopper bottom  
+const hMid = (hTop+hBot)/2;
+const htw = 1.4;  // half-width at top
+const hbw = 0.42; // half-width at bottom
+
+// Build hopper as 4 trapezoidal panels using custom geometry
+function makeTrapPanel(topW, botW, height, thick, mat) {
+  const hw_t = topW/2, hw_b = botW/2, hh = height/2, ht = thick/2;
+  const verts = new Float32Array([
+    // outer face
+    -hw_t, hh, ht,  hw_t, hh, ht,  hw_b,-hh, ht, -hw_b,-hh, ht,
+    // inner face
+    -hw_t, hh,-ht,  hw_t, hh,-ht,  hw_b,-hh,-ht, -hw_b,-hh,-ht,
+  ]);
+  const idx = [
+    0,1,2, 0,2,3,       // outer
+    5,4,7, 5,7,6,       // inner
+    4,0,3, 4,3,7,       // left
+    1,5,6, 1,6,2,       // right
+    4,5,1, 4,1,0,       // top
+    3,2,6, 3,6,7,       // bottom
+  ];
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(verts,3));
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+  return new THREE.Mesh(geo, mat);
+}
+
+const hH = hTop - hBot;
+const panels = [
+  {ry:0,    tx:0,               tz: (htw+hbw)/2},   // front
+  {ry:Math.PI, tx:0,            tz:-(htw+hbw)/2},   // back
+  {ry:Math.PI/2,  tx: (htw+hbw)/2, tz:0},           // right
+  {ry:-Math.PI/2, tx:-(htw+hbw)/2, tz:0},           // left
+];
+panels.forEach(p => {
+  const m = makeTrapPanel(htw*2, hbw*2, hH, 0.1, M.hopper);
+  m.position.set(p.tx, hMid, p.tz);
+  m.rotation.y = p.ry;
+  m.castShadow = true;
+  scene.add(m);
+});
+// Hopper shadow/dark edge on left panel (matching image)
+const mLeft = makeTrapPanel(htw*2, hbw*2, hH, 0.08, M.hopperDk);
+mLeft.position.set(-(htw+hbw)/2-0.04, hMid, 0);
+mLeft.rotation.y = -Math.PI/2;
+scene.add(mLeft);
+
+// ─── 6. INNER PLATE (light blue-gray square under hopper) ────────────────────
+// The visible inner/separator plate with bolt holes
+addBox(hbw*2+0.2, 0.1, hbw*2+0.2, M.innerPlate, 0, hMid, 0);
+// Bolt/rod holes on inner plate (4 small cylinders)
+[[-0.25,0.25],[0.25,0.25],[0.25,-0.25],[-0.25,-0.25]].forEach(([bx,bz]) => {
+  addCyl(0.04,0.04,0.2,8,M.bolt, bx, hMid+0.08, bz);
+});
+// Vertical rods through inner plate
+[[-0.25,0.25],[0.25,0.25],[0.25,-0.25],[-0.25,-0.25]].forEach(([bx,bz]) => {
+  addCyl(0.035,0.035,1.5,8,M.pipe, bx, hMid+0.75, bz);
+});
+
+// ─── 7. LOWER BOX ASSEMBLY ────────────────────────────────────────────────────
+// This is the main equipment box at the base of hopper
+// Height range: fBase (2.5) to fBase+1.4 (3.9)
+const lbBot = fBase;
+const lbTop = fBase + 1.4;
+const lbH   = lbTop - lbBot;
+const lbMid = lbBot + lbH/2;
+
+// CYAN horizontal strips (top and bottom edges of box)
+addBox(3.25, 0.14, 2.48, M.cyan, 0, lbTop-0.07, 0);   // top cyan strip
+addBox(3.25, 0.14, 2.48, M.cyan, 0, lbBot+0.07, 0);   // bottom cyan strip
+
+// RED panel — LEFT HALF of front face
+addBox(1.5, lbH-0.28, 0.08, M.red,  -0.78, lbMid, 1.15);
+// Texture/ribs on red panel
+for(let i=0;i<3;i++) for(let j=0;j<3;j++){
+  addBox(0.06,0.06,0.1,M.boltDk, -1.35+i*0.2, lbBot+0.4+j*0.3, 1.18);
+}
+
+// PURPLE/BLUE panel — RIGHT HALF and back face (the large face visible in image)
+addBox(1.6, lbH-0.28, 0.08, M.purple, 0.72, lbMid, 1.15);
+// Bolt dots on purple panel
+for(let i=0;i<4;i++) for(let j=0;j<2;j++){
+  addCyl(0.05,0.05,0.1,8,M.boltDk, 0.1+i*0.35, lbBot+0.42+j*0.5, 1.2);
+}
+
+// RIGHT side of box (purple continues)
+addBox(0.08, lbH-0.28, 2.48, M.purple, 1.55, lbMid, 0);
+
+// LEFT side of box (red)
+addBox(0.08, lbH-0.28, 2.48, M.red, -1.55, lbMid, 0);
+
+// YELLOW CIRCULAR WHEELS/DIALS on red panel
+// Two large circular dials on the left red panel
+addCyl(0.28,0.28,0.12,24,M.yellow,   -1.15, lbMid, 1.22);
+addCyl(0.28,0.28,0.12,24,M.yellow,   -0.55, lbMid, 1.22);
+// Wheel rims
+addCyl(0.28,0.28,0.04,24,M.yellowDk, -1.15, lbMid+0.06, 1.22);
+addCyl(0.28,0.28,0.04,24,M.yellowDk, -0.55, lbMid+0.06, 1.22);
+// Wheel centers
+addCyl(0.08,0.08,0.16,12,M.boltDk,   -1.15, lbMid, 1.24);
+addCyl(0.08,0.08,0.16,12,M.boltDk,   -0.55, lbMid, 1.24);
+
+// ─── 8. STAIRS (right side, gray) ────────────────────────────────────────────
+// 6 steps, each step = wider + higher than previous
+// Steps go from ground level (Y=0) up to machine platform level (~2.5)
+const nSteps   = 6;
+const stepW    = 2.7;   // width of stair (Z direction)
+const stepRise = 0.42;  // height per step
+const stepRun  = 0.52;  // depth per step
+const stairStartX = 1.65;  // where stairs connect to machine
+
+for(let i=0;i<nSteps;i++){
+  const sx = stairStartX + (nSteps-1-i)*stepRun + stepRun/2;
+  const sy = i*stepRise + stepRise/2;
+  const sz = 0;
+  // Tread (top surface)
+  addBox(stepRun, 0.16, stepW, M.stair, sx, sy, sz+0.22);
+  // Riser (front face) — darker
+  addBox(stepRun, stepRise, 0.14, M.stairDk, sx, i*stepRise + stepRise/2 - stepRise, sz + stepW/2-0.07);
+}
+
+// Stair base platform/landing (flat slab at top)
+addBox(0.55, 0.18, stepW+0.1, M.stair, stairStartX+0.27, nSteps*stepRise+0.09, 0.22);
+
+// Bottom ground slab under stairs
+// ddBox(stepRun*nSteps+0.3, 0.14, stepW+0.3, M.stairDk, stairStartX+stepRun*(nSteps/2-0.5), 0.07, 0.22);
+// ─── 9. HANDRAILS (dark green) ────────────────────────────────────────────────
+// Two rails — one on each side of staircase (front and back)
+const railR = 0.045;
+
+// FRONT RAIL (near side, z = ~1.3)
+const fr_z = 1.35;
+const fr_pts_top = [
+  new THREE.Vector3(stairStartX + 0.1, nSteps * stepRise + 0.85, fr_z),
+  new THREE.Vector3(stairStartX + stepRun * (nSteps - 1), stepRise * 1.1 + 0.85, fr_z),
+  new THREE.Vector3(stairStartX + stepRun * nSteps + 0.1, 0.85, fr_z),
+];
+addTube(fr_pts_top, railR, M.rail);
+
+// BACK RAIL (far side, z = ~-0.9)
+const br_z = -0.9;
+const br_pts_top = [
+  new THREE.Vector3(stairStartX + 0.1, nSteps * stepRise + 0.85, br_z),
+  new THREE.Vector3(stairStartX + stepRun * (nSteps - 1), stepRise * 1.1 + 0.85, br_z),
+  new THREE.Vector3(stairStartX + stepRun * nSteps + 0.1, 0.85, br_z),
+];
+addTube(br_pts_top, railR, M.rail);
+
+// ─── VERTICAL POSTS FOR EACH STEP ─────────────────────────────────────────────
+// ─── VERTICAL POSTS FOR EACH STEP (CORRECT UNDER RAIL) ───────────────────────
+for (let i = 0; i < nSteps; i++) {
+
+  // Step center X
+  const px = stairStartX + (nSteps - 1 - i) * stepRun + stepRun / 2;
+
+  // Step top surface Y
+  const stepTopY = i * stepRise + 0.08;
+
+  // ---- FRONT RAIL HEIGHT at this X ----
+  const x1f = stairStartX + 0.1;
+  const y1f = nSteps * stepRise + 0.85;
+  const x2f = stairStartX + stepRun * nSteps + 0.1;
+  const y2f = 0.85;
+
+  const tf = (px - x1f) / (x2f - x1f);
+  const frontRailY = y1f + tf * (y2f - y1f);
+
+  const frontPostHeight = frontRailY - stepTopY;
+
+  // FRONT POST
+  addCyl(
+    railR, railR,
+    frontPostHeight,
+    8,
+    M.rail,
+    px,
+    stepTopY + frontPostHeight / 2,
+    1.18
+  );
+
+  // ---- BACK RAIL HEIGHT at this X ----
+  const x1b = stairStartX + 0.1;
+  const y1b = nSteps * stepRise + 0.85;
+  const x2b = stairStartX + stepRun * nSteps + 0.1;
+  const y2b = 0.85;
+
+  const tb = (px - x1b) / (x2b - x1b);
+  const backRailY = y1b + tb * (y2b - y1b);
+
+  const backPostHeight = backRailY - stepTopY;
+
+  // BACK POST
+  addCyl(
+    railR, railR,
+    backPostHeight,
+    8,
+    M.rail,
+    px,
+    stepTopY + backPostHeight / 2,
+    -0.72
+  );
+}
+
+
+// ─── 10. GROUND PLANE ────────────────────────────────────────────────────────
+const gnd = new THREE.Mesh(new THREE.PlaneGeometry(60,60),
+  new THREE.MeshLambertMaterial({color:0xf2f2f2}));
+gnd.rotation.x = -Math.PI/2; gnd.position.y = -0.01; gnd.receiveShadow = true;
+scene.add(gnd);
+
+// ─── MOUSE ORBIT ─────────────────────────────────────────────────────────────
+let drag=false, rDrag=false, lm={x:0,y:0};
+const el = renderer.domElement;
+el.addEventListener('mousedown',e=>{drag=true;rDrag=e.button===2;lm={x:e.clientX,y:e.clientY};});
+el.addEventListener('contextmenu',e=>e.preventDefault());
+window.addEventListener('mouseup',()=>{drag=false;});
+window.addEventListener('mousemove',e=>{
+  if(!drag)return;
+  const dx=e.clientX-lm.x, dy=e.clientY-lm.y; lm={x:e.clientX,y:e.clientY};
+  if(rDrag){
+    const r=new THREE.Vector3(), u=new THREE.Vector3(0,1,0);
+    r.crossVectors(camera.getWorldDirection(new THREE.Vector3()),u).normalize();
+    target.addScaledVector(r,-dx*0.01); target.addScaledVector(u,dy*0.01);
+  } else {
+    sph.theta -= dx*0.007;
+    sph.phi = Math.max(0.15,Math.min(1.45,sph.phi-dy*0.007));
+  }
+  applyCam();
+});
+el.addEventListener('wheel',e=>{
+  sph.r=Math.max(5,Math.min(50,sph.r+e.deltaY*0.025)); applyCam();
+},{passive:true});
+
+// Touch
+let lt=null;
+el.addEventListener('touchstart',e=>{if(e.touches.length===1){drag=true;rDrag=false;lt={x:e.touches[0].clientX,y:e.touches[0].clientY};}});
+el.addEventListener('touchend',()=>{drag=false;});
+el.addEventListener('touchmove',e=>{
+  if(!drag||e.touches.length!==1)return;
+  const dx=e.touches[0].clientX-lt.x,dy=e.touches[0].clientY-lt.y;
+  lt={x:e.touches[0].clientX,y:e.touches[0].clientY};
+  sph.theta-=dx*0.007; sph.phi=Math.max(0.15,Math.min(1.45,sph.phi-dy*0.007));
+  applyCam();
+});
+
+function resize() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  camera.aspect=w/h;
+  
+  if (w < h) {
+    sph.r = 30; // Zoom out for portrait
+  } else {
+    sph.r = 22;
+  }
+  
+  camera.updateProjectionMatrix();
+  renderer.setSize(w,h);
+  applyCam();
+}
+window.addEventListener('resize', resize);
+if (typeof ResizeObserver !== 'undefined') {
+  new ResizeObserver(resize).observe(document.body);
+}
+setTimeout(resize, 300);
+
+// ─── AUTO ROTATION (LIKE CAD MODEL) ─────────────────────────────────
+let autoRotate = true;
+
+// stop auto rotate when user interacts
+renderer.domElement.addEventListener('mousedown', ()=> autoRotate = false);
+
+(function loop(){
+  requestAnimationFrame(loop);
+
+  // rotate model automatically
+  if(autoRotate){
+    sph.theta += 0.01;   // speed (increase/decrease here)
+    applyCam();
+  }
+
+  renderer.render(scene, camera);
+})();
+</script>
+</body>
+</html>

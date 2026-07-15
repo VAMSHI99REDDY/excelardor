@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Circular Radial Truss – 3D CAD</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#f0f4f8; font-family:'Courier New',monospace; overflow:hidden; }
+  canvas { display:block; }
+  #hud { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; }
+
+  #title-bar {
+    position:absolute; top:14px; left:50%; transform:translateX(-50%);
+    background:rgba(255,255,255,0.92); border:1px solid #3388cc;
+    padding:8px 28px; color:#1155aa; font-size:11px; letter-spacing:2px;
+    text-align:center; white-space:nowrap; box-shadow:0 2px 8px rgba(0,0,0,0.12);
+  }
+  #title-bar span { display:block; font-size:8px; color:#5577aa; letter-spacing:2px; margin-top:2px; }
+
+  #view-controls {
+    position:absolute; top:70px; left:16px;
+    display:flex; flex-direction:column; gap:4px; pointer-events:all;
+  }
+  .view-btn {
+    background:rgba(255,255,255,0.92); border:1px solid #aabbcc; color:#334466;
+    font-family:'Courier New',monospace; font-size:9px; letter-spacing:1px;
+    padding:5px 11px; cursor:pointer; text-transform:uppercase; transition:all .2s;
+    box-shadow:0 1px 4px rgba(0,0,0,0.1);
+  }
+  .view-btn:hover { border-color:#3388cc; color:#1155aa; background:#e8f0ff; }
+
+  #legend {
+    position:absolute; top:70px; right:16px;
+    background:rgba(255,255,255,0.92); border:1px solid #aabbcc;
+    padding:11px 15px; color:#334; font-size:10px; line-height:1.95;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+  }
+  #legend h3 { color:#1155aa; font-size:9px; letter-spacing:2px; margin-bottom:6px; }
+  #legend li { list-style:none; display:flex; align-items:center; gap:7px; }
+  .dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+  #controls-info {
+    position:absolute; bottom:14px; left:50%; transform:translateX(-50%);
+    background:rgba(255,255,255,0.88); border:1px solid #aabbcc;
+    padding:7px 18px; color:#667788; font-size:10px; letter-spacing:1px; white-space:nowrap;
+    box-shadow:0 1px 4px rgba(0,0,0,0.08);
+  }
+  #controls-info kbd {
+    background:#eef2f8; border:1px solid #aabbcc; color:#334466;
+    padding:1px 5px; border-radius:2px; font-family:inherit;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    #title-bar { width: 85%; white-space: normal; padding: 6px 12px; font-size: 10px; top: 10px; }
+    #title-bar span { font-size: 7px; }
+    #view-controls { top: auto; bottom: 65px; left: 50%; transform: translateX(-50%); flex-direction: row; flex-wrap: wrap; justify-content: center; width: 95%; }
+    .view-btn { padding: 4px 8px; font-size: 8px; }
+    #legend { display: none; } /* Legend is too bulky for mobile */
+    #controls-info { font-size: 8px; padding: 5px 12px; width: 90%; text-align: center; }
+  }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud">
+  <div id="title-bar">
+    CIRCULAR RADIAL TRUSS STRUCTURE
+
+  </div>
+
+
+
+
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════
+//  RENDERER SETUP
+// ═══════════════════════════════════════════════════
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputEncoding = THREE.sRGBEncoding;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xf0f4f8);  // WHITE / light gray background
+
+const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 500);
+
+// Initialize camera variables early to prevent ReferenceError in resize()
+let sph = {theta: -0.55, phi: 0.72, r: 52};
+let tgt = new THREE.Vector3(0, 1.2, 0);
+let autoRot = true;
+
+function resize() {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  renderer.setSize(width, height);
+  camera.aspect = width / height;
+  
+  // Dynamic camera distance for mobile
+  if (width < height) {
+    sph.r = 75; // Zoom out more for vertical screens
+  } else {
+    sph.r = 52;
+  }
+  
+  camera.updateProjectionMatrix();
+}
+resize();
+window.addEventListener('resize', resize);
+if (typeof ResizeObserver !== 'undefined') {
+  new ResizeObserver(resize).observe(document.body);
+}
+setTimeout(resize, 300);
+canvas.style.touchAction = 'none'; // Prevent scrolling while interacting
+
+// ═══════════════════════════════════════════════════
+//  LIGHTING  (bright, like SolidWorks default)
+// ═══════════════════════════════════════════════════
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+
+const keyLight = new THREE.DirectionalLight(0xffffff, 0.9);
+keyLight.position.set(30, 50, 30);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(4096, 4096);
+keyLight.shadow.camera.left = keyLight.shadow.camera.bottom = -55;
+keyLight.shadow.camera.right = keyLight.shadow.camera.top   =  55;
+scene.add(keyLight);
+
+const fillLight = new THREE.DirectionalLight(0xddeeff, 0.45);
+fillLight.position.set(-25, 20, -20);
+scene.add(fillLight);
+
+const rimLight = new THREE.DirectionalLight(0xffffff, 0.25);
+rimLight.position.set(5, -10, 30);
+scene.add(rimLight);
+
+// Subtle ground plane for shadows
+const groundGeo = new THREE.PlaneGeometry(120, 120);
+const groundMat = new THREE.ShadowMaterial({ opacity: 0.08 });
+const ground = new THREE.Mesh(groundGeo, groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.05;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// ═══════════════════════════════════════════════════
+//  MATERIALS  — dark steel, matches SolidWorks dark-metal look
+// ═══════════════════════════════════════════════════
+const mBeam   = new THREE.MeshStandardMaterial({ color: 0x1a1e26, metalness: 0.8, roughness: 0.35 });
+const mRing   = new THREE.MeshStandardMaterial({ color: 0x1c2028, metalness: 0.8, roughness: 0.3  });
+const mCol    = new THREE.MeshStandardMaterial({ color: 0x2a2e38, metalness: 0.75, roughness: 0.4  });
+const mCap    = new THREE.MeshStandardMaterial({ color: 0x32363e, metalness: 0.7,  roughness: 0.45 });
+const mBase   = new THREE.MeshStandardMaterial({ color: 0x3a3e4a, metalness: 0.65, roughness: 0.5  });
+const mHub    = new THREE.MeshStandardMaterial({ color: 0x14171f, metalness: 0.85, roughness: 0.25 });
+const mEquipA = new THREE.MeshStandardMaterial({ color: 0x2e3240, metalness: 0.7,  roughness: 0.45 });
+const mEquipB = new THREE.MeshStandardMaterial({ color: 0x242838, metalness: 0.65, roughness: 0.5  });
+const mEquipC = new THREE.MeshStandardMaterial({ color: 0x1e2230, metalness: 0.6,  roughness: 0.55 });
+const mGreenA = new THREE.MeshStandardMaterial({ color: 0x1a6b2a, metalness: 0.55, roughness: 0.4  });
+const mGreenB = new THREE.MeshStandardMaterial({ color: 0x228833, metalness: 0.5,  roughness: 0.45 });
+const mArm    = new THREE.MeshStandardMaterial({ color: 0x0e1018, metalness: 0.9,  roughness: 0.2  });
+const mDiag   = new THREE.MeshStandardMaterial({ color: 0x20242e, metalness: 0.75, roughness: 0.38 });
+const mVert   = new THREE.MeshStandardMaterial({ color: 0x282c38, metalness: 0.7,  roughness: 0.4  });
+
+// ═══════════════════════════════════════════════════
+//  SCENE ROOT
+// ═══════════════════════════════════════════════════
+const root = new THREE.Group();
+scene.add(root);
+
+// ─── Geometry Helpers ───
+function BOX(mat, w, h, d, x, y, z, ry) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  m.position.set(x, y, z);
+  if (ry) m.rotation.y = ry;
+  m.castShadow = true; m.receiveShadow = true;
+  root.add(m); return m;
+}
+function CYL(mat, rt, rb, h, seg, x, y, z, rx, rz) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), mat);
+  m.position.set(x, y, z);
+  if (rx !== undefined) m.rotation.x = rx;
+  if (rz !== undefined) m.rotation.z = rz;
+  m.castShadow = true; m.receiveShadow = true;
+  root.add(m); return m;
+}
+function PIPE(mat, r, x1, y1, z1, x2, y2, z2) {
+  const d = new THREE.Vector3(x2-x1, y2-y1, z2-z1);
+  const len = d.length();
+  if (len < 0.005) return null;
+  const mid = new THREE.Vector3((x1+x2)/2, (y1+y2)/2, (z1+z2)/2);
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 5), mat);
+  m.position.copy(mid);
+  m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), d.normalize());
+  m.castShadow = true;
+  root.add(m); return m;
+}
+
+// ═══════════════════════════════════════════════════
+//  STRUCTURE PARAMETERS  (tuned to match photo)
+// ═══════════════════════════════════════════════════
+const R_OUT   = 20;    // outer radius
+const R_MO    = 16;    // mid-outer ring radius
+const R_MID   = 11.5;  // middle ring radius
+const R_MI    = 7.5;   // mid-inner ring radius
+const R_IN    = 5.0;   // inner ring radius (equipment)
+const R_HUB   = 1.1;   // hub radius
+const TY      = 3.8;   // truss elevation
+const N_RAD   = 24;    // radial beams
+const N_HALF  = 12;    // half radials for inner section
+const BR      = 0.075; // beam radius
+const RING_N  = 80;    // ring smoothness
+const COL_H   = 5.5;   // column height (hanging down from truss)
+
+// ═══════════════════════════════════════════════════
+//  1. CENTER HUB ASSEMBLY
+// ═══════════════════════════════════════════════════
+CYL(mHub, R_HUB, R_HUB,    0.55, 32,  0, TY,        0);         // main disk
+CYL(mHub, 0.55,  0.55,     1.4,  16,  0, TY+0.95,   0);         // center post
+CYL(mCap, 0.72,  0.72,     0.14, 24,  0, TY+0.3,    0);         // lower flange
+CYL(mCap, 0.72,  0.72,     0.14, 24,  0, TY+1.55,   0);         // upper flange
+CYL(mHub, 0.3,   0.3,      0.5,  12,  0, TY+2.0,    0);         // top stub
+
+// ═══════════════════════════════════════════════════
+//  2. RADIAL BEAMS — 24 spokes
+//     Each has: lower chord, upper chord, verticals
+// ═══════════════════════════════════════════════════
+for (let i = 0; i < N_RAD; i++) {
+  const ang = (i / N_RAD) * Math.PI * 2;
+  const cx = Math.cos(ang), cz = Math.sin(ang);
+
+  // ── Lower chord: hub → outer edge ──
+  PIPE(mBeam, BR,
+    cx * R_HUB, TY,       cz * R_HUB,
+    cx * R_OUT, TY,       cz * R_OUT
+  );
+
+  // ── Upper chord: starts at mid-ring, angled up slightly ──
+  PIPE(mBeam, BR * 0.65,
+    cx * R_MID, TY + 0.5, cz * R_MID,
+    cx * R_OUT, TY + 0.2, cz * R_OUT
+  );
+
+  // ── Vertical web members between chords ──
+  // At mid-ring junction
+  PIPE(mVert, BR * 0.55,
+    cx * R_MID,  TY,       cz * R_MID,
+    cx * R_MID,  TY + 0.5, cz * R_MID
+  );
+  // At mid-outer
+  PIPE(mVert, BR * 0.5,
+    cx * R_MO,   TY,       cz * R_MO,
+    cx * R_MO,   TY + 0.35,cz * R_MO
+  );
+  // At 85% radius
+  const r85 = R_OUT * 0.85;
+  PIPE(mVert, BR * 0.45,
+    cx * r85, TY,       cz * r85,
+    cx * r85, TY + 0.22,cz * r85
+  );
+
+  // ── Diagonal brace: mid-ring to column top ──
+  PIPE(mDiag, BR * 0.55,
+    cx * R_MID, TY,       cz * R_MID,
+    cx * R_OUT, TY - 0.9, cz * R_OUT
+  );
+
+  // ── Inner radials: hub → inner ring (shorter, all 24) ──
+  PIPE(mBeam, BR * 0.55,
+    cx * R_HUB, TY, cz * R_HUB,
+    cx * R_IN,  TY, cz * R_IN
+  );
+}
+
+// ═══════════════════════════════════════════════════
+//  3. CONCENTRIC RING BEAMS
+// ═══════════════════════════════════════════════════
+function makeRing(radius, y, tubeR, mat) {
+  const pts = [];
+  for (let i = 0; i <= RING_N; i++) {
+    const a = (i / RING_N) * Math.PI * 2;
+    pts.push([ Math.cos(a)*radius, y, Math.sin(a)*radius ]);
+  }
+  for (let i = 0; i < RING_N; i++) {
+    PIPE(mat, tubeR,
+      pts[i][0], pts[i][1], pts[i][2],
+      pts[i+1][0], pts[i+1][1], pts[i+1][2]
+    );
+  }
+}
+
+makeRing(R_OUT,       TY,         BR,          mRing);  // outer edge ring
+makeRing(R_OUT,       TY + 0.2,   BR * 0.55,   mRing);  // outer upper chord ring
+makeRing(R_MO,        TY,         BR * 0.85,   mRing);  // mid-outer ring
+makeRing(R_MO,        TY + 0.35,  BR * 0.45,   mRing);  // mid-outer upper
+makeRing(R_MID,       TY,         BR * 0.85,   mRing);  // middle ring
+makeRing(R_MID,       TY + 0.5,   BR * 0.45,   mRing);  // middle upper
+makeRing(R_MI,        TY,         BR * 0.75,   mRing);  // mid-inner ring
+makeRing(R_IN,        TY,         BR * 0.65,   mRing);  // inner ring
+
+// ═══════════════════════════════════════════════════
+//  4. DIAGONAL TANGENTIAL BRACING between rings
+// ═══════════════════════════════════════════════════
+for (let i = 0; i < N_RAD; i++) {
+  const a0 = (i / N_RAD) * Math.PI * 2;
+  const a1 = ((i + 1) / N_RAD) * Math.PI * 2;
+
+  // Outer → mid-outer diagonal
+  PIPE(mDiag, BR * 0.42,
+    Math.cos(a0)*R_OUT, TY, Math.sin(a0)*R_OUT,
+    Math.cos(a1)*R_MO,  TY, Math.sin(a1)*R_MO
+  );
+
+  // Mid-outer → mid diagonal (every other)
+  if (i % 2 === 0) {
+    PIPE(mDiag, BR * 0.38,
+      Math.cos(a0)*R_MO,  TY, Math.sin(a0)*R_MO,
+      Math.cos(a1)*R_MID, TY, Math.sin(a1)*R_MID
+    );
+  }
+
+  // Mid → mid-inner diagonal (every 3rd)
+  if (i % 3 === 0) {
+    PIPE(mDiag, BR * 0.34,
+      Math.cos(a0)*R_MID, TY, Math.sin(a0)*R_MID,
+      Math.cos(a1)*R_MI,  TY, Math.sin(a1)*R_MI
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  5. PERIMETER COLUMNS — 24 columns hanging down
+//     Exact match: rectangular hollow section columns
+//     with double-step base plates visible in photo
+// ═══════════════════════════════════════════════════
+for (let i = 0; i < N_RAD; i++) {
+  const ang = (i / N_RAD) * Math.PI * 2;
+  const px = Math.cos(ang) * R_OUT;
+  const pz = Math.sin(ang) * R_OUT;
+
+  // Column shaft (box section, oriented radially)
+  BOX(mCol, 0.28, COL_H, 0.28, px, TY - COL_H/2 - 0.1, pz, ang);
+
+  // Top cap / connection plate
+  BOX(mCap, 0.48, 0.16, 0.48, px, TY - 0.08, pz);
+
+  // Base plate — step 1 (larger)
+  BOX(mBase, 0.72, 0.16, 0.72, px, TY - COL_H - 0.18, pz);
+  // Base plate — step 2 (slightly smaller, below)
+  BOX(mBase, 0.58, 0.22, 0.58, px, TY - COL_H - 0.38, pz);
+  // Anchor bolts (4 tiny cylinders)
+  for (let bx of [-0.2, 0.2]) {
+    for (let bz of [-0.2, 0.2]) {
+      CYL(mHub, 0.03, 0.03, 0.25, 5,
+        px + Math.cos(ang)*bx - Math.sin(ang)*bz,
+        TY - COL_H - 0.5,
+        pz + Math.sin(ang)*bx + Math.cos(ang)*bz
+      );
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  6. INNER EQUIPMENT UNITS — 16 on inner ring
+//     Tall dark units as seen in the photo
+// ═══════════════════════════════════════════════════
+const N_EQUIP_IN = 16;
+for (let i = 0; i < N_EQUIP_IN; i++) {
+  const ang = (i / N_EQUIP_IN) * Math.PI * 2;
+  const ex = Math.cos(ang) * R_IN;
+  const ez = Math.sin(ang) * R_IN;
+
+  // Main body
+  BOX(mEquipA, 0.5, 1.0, 0.42, ex, TY + 0.2, ez, ang);
+  // Upper section
+  BOX(mEquipB, 0.36, 0.28, 0.3, ex, TY + 0.84, ez, ang);
+  // Top cap detail
+  BOX(mEquipC, 0.26, 0.1,  0.22, ex, TY + 0.99, ez, ang);
+  // Connector to truss below
+  PIPE(mVert, 0.05, ex, TY - 0.08, ez, ex, TY + 0.08, ez);
+}
+
+// ═══════════════════════════════════════════════════
+//  7. OUTER EQUIPMENT UNITS — 24 on mid-outer ring
+//     Slightly smaller units around mid-outer ring
+// ═══════════════════════════════════════════════════
+const N_EQUIP_OUT = 24;
+for (let i = 0; i < N_EQUIP_OUT; i++) {
+  const ang = (i / N_EQUIP_OUT) * Math.PI * 2;
+  const ex = Math.cos(ang) * R_MO;
+  const ez = Math.sin(ang) * R_MO;
+
+  BOX(mEquipA, 0.44, 0.85, 0.38, ex, TY + 0.18, ez, ang);
+  BOX(mEquipB, 0.32, 0.24, 0.28, ex, TY + 0.72, ez, ang);
+  BOX(mEquipC, 0.22, 0.08, 0.2,  ex, TY + 0.85, ez, ang);
+}
+
+// ═══════════════════════════════════════════════════
+//  8. SERVICE ARM — prominent diagonal arm
+//     Thick dark arm from hub, with 3 green hanger units
+//     Located at ~40° position as in photo
+// ═══════════════════════════════════════════════════
+const ARM_ANG = Math.PI * 0.22;   // ~40 degrees
+const ACX = Math.cos(ARM_ANG), ACZ = Math.sin(ARM_ANG);
+const ARM_END = R_OUT * 0.92;
+
+// Main arm — upper chord (thickest)
+PIPE(mArm, 0.19,
+  ACX * R_HUB, TY + 0.7,    ACZ * R_HUB,
+  ACX * ARM_END, TY + 0.28, ACZ * ARM_END
+);
+// Main arm — lower chord
+PIPE(mArm, 0.13,
+  ACX * R_HUB, TY + 0.2,    ACZ * R_HUB,
+  ACX * ARM_END, TY - 0.1,  ACZ * ARM_END
+);
+// Web verticals along arm
+for (let t = 0.15; t < 0.95; t += 0.18) {
+  const wx = ACX * ARM_END * t, wz = ACZ * ARM_END * t;
+  const ybot = TY + 0.2 - 0.3 * t;
+  const ytop = TY + 0.7 - 0.42 * t;
+  PIPE(mArm, 0.07, wx, ybot, wz, wx, ytop, wz);
+}
+
+// GREEN HANGER UNITS along arm (3 units, visible in photo)
+const greenPositions = [0.38, 0.60, 0.80];
+for (let gi = 0; gi < 3; gi++) {
+  const t = greenPositions[gi];
+  const gx = ACX * ARM_END * t;
+  const gz = ACZ * ARM_END * t;
+  const gy = TY + 0.1;
+
+  // Green box body
+  BOX(mGreenA, 0.38, 0.72, 0.34, gx, gy + 0.1, gz);
+  // Green top detail
+  BOX(mGreenB, 0.28, 0.2,  0.25, gx, gy + 0.56, gz);
+  // Green vertical rod hanging down
+  PIPE(mGreenA, 0.05, gx, TY - 0.05, gz, gx, TY - 1.4 + gi * 0.1, gz);
+  // Small green base at bottom of rod
+  BOX(mGreenB, 0.18, 0.12, 0.18, gx, TY - 1.4 + gi * 0.1, gz);
+}
+
+// ═══════════════════════════════════════════════════
+//  9. VERTICAL HANGERS at each column (short stub)
+//     Thin vertical rods from truss node to column cap
+// ═══════════════════════════════════════════════════
+for (let i = 0; i < N_RAD; i++) {
+  const ang = (i / N_RAD) * Math.PI * 2;
+  const hx = Math.cos(ang) * R_OUT;
+  const hz = Math.sin(ang) * R_OUT;
+  PIPE(mVert, 0.055, hx, TY, hz, hx, TY - 0.65, hz);
+}
+
+// ═══════════════════════════════════════════════════
+//  10. MID-INNER RING VERTICAL SUPPORTS
+//      Short legs from mid-inner ring going down
+// ═══════════════════════════════════════════════════
+const N_MI_LEGS = 16;
+for (let i = 0; i < N_MI_LEGS; i++) {
+  const ang = (i / N_MI_LEGS) * Math.PI * 2;
+  const lx = Math.cos(ang) * R_MI;
+  const lz = Math.sin(ang) * R_MI;
+  PIPE(mVert, 0.065, lx, TY, lz, lx, TY - 2.0, lz);
+  BOX(mBase, 0.22, 0.1, 0.22, lx, TY - 2.05, lz);
+}
+
+// ═══════════════════════════════════════════════════
+//  11. INNER RING LEGS
+// ═══════════════════════════════════════════════════
+for (let i = 0; i < N_EQUIP_IN; i++) {
+  const ang = (i / N_EQUIP_IN) * Math.PI * 2;
+  const lx = Math.cos(ang) * R_IN;
+  const lz = Math.sin(ang) * R_IN;
+  PIPE(mVert, 0.05, lx, TY - 0.08, lz, lx, TY - 1.5, lz);
+}
+
+// ═══════════════════════════════════════════════════
+//  12. SECONDARY CROSS-RING DIAGONALS (innermost zone)
+// ═══════════════════════════════════════════════════
+for (let i = 0; i < N_EQUIP_IN; i++) {
+  const a0 = (i / N_EQUIP_IN) * Math.PI * 2;
+  const a1 = ((i + 1) / N_EQUIP_IN) * Math.PI * 2;
+  PIPE(mDiag, BR * 0.35,
+    Math.cos(a0)*R_MI, TY, Math.sin(a0)*R_MI,
+    Math.cos(a1)*R_IN, TY, Math.sin(a1)*R_IN
+  );
+}
+
+// ═══════════════════════════════════════════════════
+//  ORBIT CONTROLS
+// ═══════════════════════════════════════════════════
+let drag = false, rDrag = false, prev = {x:0,y:0};
+
+function applyCamera() {
+  camera.position.set(
+    tgt.x + sph.r * Math.sin(sph.phi) * Math.sin(sph.theta),
+    tgt.y + sph.r * Math.cos(sph.phi),
+    tgt.z + sph.r * Math.sin(sph.phi) * Math.cos(sph.theta)
+  );
+  camera.lookAt(tgt);
+}
+applyCamera();
+
+canvas.addEventListener('mousedown', e => {
+  drag=true; rDrag=(e.button===2); prev={x:e.clientX,y:e.clientY}; e.preventDefault();
+});
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+window.addEventListener('mouseup', () => drag=false);
+window.addEventListener('mousemove', e => {
+  if(!drag) return;
+  const dx=(e.clientX-prev.x)*0.004, dy=(e.clientY-prev.y)*0.004;
+  if(rDrag){
+    const r=new THREE.Vector3().crossVectors(
+      camera.position.clone().sub(tgt).normalize(), camera.up).normalize();
+    tgt.addScaledVector(r,-dx*5); tgt.y+=dy*5;
+  } else {
+    sph.theta-=dx;
+    sph.phi=Math.max(0.05,Math.min(Math.PI-0.05,sph.phi+dy));
+  }
+  prev={x:e.clientX,y:e.clientY}; applyCamera();
+});
+canvas.addEventListener('wheel', e=>{
+  sph.r=Math.max(12,Math.min(100,sph.r+e.deltaY*0.05)); applyCamera();
+},{passive:true});
+
+let ltd=0;
+canvas.addEventListener('touchstart',e=>{
+  if(e.touches.length===1){drag=true;prev={x:e.touches[0].clientX,y:e.touches[0].clientY};}
+  if(e.touches.length===2){ltd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);}
+},{passive:true});
+canvas.addEventListener('touchend',()=>drag=false);
+canvas.addEventListener('touchmove',e=>{
+  if(e.touches.length===1&&drag){
+    const dx=(e.touches[0].clientX-prev.x)*0.006,dy=(e.touches[0].clientY-prev.y)*0.006;
+    sph.theta-=dx; sph.phi=Math.max(0.05,Math.min(Math.PI-0.05,sph.phi+dy));
+    prev={x:e.touches[0].clientX,y:e.touches[0].clientY}; applyCamera();
+  }
+  if(e.touches.length===2){
+    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    sph.r=Math.max(12,Math.min(100,sph.r-(d-ltd)*0.08)); ltd=d; applyCamera();
+  }
+},{passive:true});
+
+function setView(v){
+  const V={
+    iso:  {theta:-0.55, phi:0.72,        r:52, tx:0,ty:1.2,tz:0},
+    top:  {theta:0,     phi:0.04,        r:52, tx:0,ty:1.2,tz:0},
+    front:{theta:0,     phi:Math.PI/2,   r:52, tx:0,ty:1.2,tz:0},
+    side: {theta:Math.PI/2,phi:Math.PI/2,r:52, tx:0,ty:1.2,tz:0},
+    low:  {theta:-0.45, phi:1.2,         r:44, tx:0,ty:0,  tz:0},
+  };
+  const vd=V[v]; sph={theta:vd.theta,phi:vd.phi,r:vd.r};
+  tgt.set(vd.tx,vd.ty,vd.tz); applyCamera();
+}
+
+// ═══════════════════════════════════════════════════
+//  RENDER LOOP
+// ═══════════════════════════════════════════════════
+canvas.addEventListener('mousedown',()=>autoRot=false);
+
+function animate(){
+  requestAnimationFrame(animate);
+  if(autoRot){ sph.theta+=0.001; applyCamera(); }
+  renderer.render(scene,camera);
+}
+animate();
+</script>
+</body>
+</html>

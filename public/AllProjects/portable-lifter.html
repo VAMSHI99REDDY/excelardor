@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>3D CAD - Mobile Crane Lift</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#ffffff; overflow:hidden; }
+canvas { display:block; }
+#ui {
+  position:absolute; bottom:14px; left:50%; transform:translateX(-50%);
+  background:rgba(255,255,255,0.92); border:1px solid #ddd;
+  border-radius:8px; padding:7px 20px; font:12px Arial; color:#555;
+  display:flex; gap:16px; align-items:center;
+  box-shadow:0 2px 8px rgba(0,0,0,0.10);
+}
+#autoBtn {
+  background:#f0f0f0; border:1px solid #bbb; border-radius:5px;
+  padding:4px 12px; font:12px Arial; cursor:pointer; color:#333;
+}
+#autoBtn:hover { background:#e0e0e0; }
+
+@media (max-width: 768px) {
+  #ui { 
+    width: 90%; 
+    flex-wrap: wrap; 
+    justify-content: center; 
+    gap: 8px; 
+    padding: 6px 12px; 
+    font-size: 10px;
+    bottom: 10px;
+  }
+
+  #autoBtn { padding: 3px 8px; font-size: 10px; }
+}
+</style>
+</head>
+<body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth,window.innerHeight);
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.setClearColor(0xffffff,1);
+document.body.appendChild(renderer.domElement);
+renderer.domElement.style.touchAction = 'none';
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0xffffff);
+
+const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,0.01,500);
+let sph={theta:0.55,phi:0.72,r:20};
+let camTarget=new THREE.Vector3(0,1.5,0);
+function updateCam(){
+  camera.position.set(
+    camTarget.x+sph.r*Math.sin(sph.phi)*Math.cos(sph.theta),
+    camTarget.y+sph.r*Math.cos(sph.phi),
+    camTarget.z+sph.r*Math.sin(sph.phi)*Math.sin(sph.theta)
+  );
+  camera.lookAt(camTarget);
+}
+updateCam();
+
+scene.add(new THREE.AmbientLight(0xffffff,0.70));
+const sun=new THREE.DirectionalLight(0xffffff,0.88);
+sun.position.set(10,20,12);sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);
+sun.shadow.camera.left=-14;sun.shadow.camera.right=14;
+sun.shadow.camera.top=14;sun.shadow.camera.bottom=-14;
+scene.add(sun);
+const fill=new THREE.DirectionalLight(0xd8e8f8,0.38);
+fill.position.set(-8,6,-8);scene.add(fill);
+const rim=new THREE.DirectionalLight(0xffffff,0.22);
+rim.position.set(2,-4,10);scene.add(rim);
+
+const M={
+  frameLight:new THREE.MeshPhongMaterial({color:0xb2bec8,specular:0x445566,shininess:70}),
+  frameMid:  new THREE.MeshPhongMaterial({color:0x8c98a8,specular:0x334455,shininess:60}),
+  frameDark: new THREE.MeshPhongMaterial({color:0x5c6878,specular:0x223344,shininess:50}),
+  motorBox:  new THREE.MeshPhongMaterial({color:0x5a6472,specular:0x223344,shininess:45}),
+  motorDark: new THREE.MeshPhongMaterial({color:0x404c5a,specular:0x111122,shininess:35}),
+  hydraulic: new THREE.MeshPhongMaterial({color:0xb8c8d8,specular:0x778899,shininess:130}),
+  hydShaft:  new THREE.MeshPhongMaterial({color:0xd0dce8,specular:0x99aabb,shininess:160}),
+  wheel:     new THREE.MeshPhongMaterial({color:0x383838,specular:0x222222,shininess:30}),
+  wheelHub:  new THREE.MeshPhongMaterial({color:0x686878,specular:0x445566,shininess:80}),
+  pivot:     new THREE.MeshPhongMaterial({color:0x4a5568,specular:0x334455,shininess:55}),
+  bolt:      new THREE.MeshPhongMaterial({color:0x6a7a8a,specular:0x556677,shininess:100}),
+  box:       new THREE.MeshPhongMaterial({color:0xb87030,specular:0x442200,shininess:22}),
+  boxDark:   new THREE.MeshPhongMaterial({color:0x8a5020,specular:0x331100,shininess:16}),
+  boxSide:   new THREE.MeshPhongMaterial({color:0xd09050,specular:0x553311,shininess:26}),
+  bracket:   new THREE.MeshPhongMaterial({color:0x4a5568,specular:0x334455,shininess:60}),
+};
+
+const root=new THREE.Group();
+scene.add(root);
+function B(w,h,d,mat,x,y,z,rx,ry,rz){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+  m.position.set(x,y,z);
+  if(rx)m.rotation.x=rx;if(ry)m.rotation.y=ry;if(rz)m.rotation.z=rz;
+  m.castShadow=true;m.receiveShadow=true;root.add(m);return m;
+}
+function C(rt,rb,h,seg,mat,x,y,z,rx,ry,rz){
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg||20),mat);
+  m.position.set(x,y,z);
+  if(rx)m.rotation.x=rx;if(ry)m.rotation.y=ry;if(rz)m.rotation.z=rz;
+  m.castShadow=true;m.receiveShadow=true;root.add(m);return m;
+}
+
+// === BASE FRAME ===
+const bfY=0.18;
+// Two long side rails
+B(7.2,0.22,0.22,M.frameMid, 0,bfY, 0.60);
+B(7.2,0.22,0.22,M.frameMid, 0,bfY,-0.60);
+// Bottom flat plate
+B(7.0,0.08,1.30,M.frameLight,-0.1,bfY-0.07,0);
+// Cross members
+[-3.35,-0.9,0.45,2.9].forEach(cx=>{
+  B(0.22,0.22,1.38,M.frameMid,cx,bfY,0);
+});
+// Center channel spine
+B(5.2,0.20,0.38,M.frameDark,-0.3,bfY+0.19,0);
+// Side walls (thin)
+B(7.0,0.32,0.08,M.frameMid, 0,bfY+0.13, 0.68);
+B(7.0,0.32,0.08,M.frameMid, 0,bfY+0.13,-0.68);
+
+// === WHEELS ===
+// Rear large wheels (right side X~+2.5)
+C(0.44,0.44,0.22,28,M.wheel,   2.55,0.44, 0.76,0,0,Math.PI/2);
+C(0.44,0.44,0.22,28,M.wheel,   2.55,0.44,-0.76,0,0,Math.PI/2);
+C(0.20,0.20,0.30,16,M.wheelHub,2.55,0.44, 0.88,0,0,Math.PI/2);
+C(0.20,0.20,0.30,16,M.wheelHub,2.55,0.44,-0.88,0,0,Math.PI/2);
+C(0.07,0.07,2.0, 10,M.bolt,    2.55,0.44,0,0,0,Math.PI/2);
+B(0.20,0.60,0.20,M.frameDark,  2.55,0.40, 0.62);
+B(0.20,0.60,0.20,M.frameDark,  2.55,0.40,-0.62);
+// Front small wheels (left side X~-3.2)
+C(0.32,0.32,0.18,24,M.wheel,  -3.2,0.32, 0.72,0,0,Math.PI/2);
+C(0.32,0.32,0.18,24,M.wheel,  -3.2,0.32,-0.72,0,0,Math.PI/2);
+C(0.14,0.14,0.24,14,M.wheelHub,-3.2,0.32, 0.84,0,0,Math.PI/2);
+C(0.14,0.14,0.24,14,M.wheelHub,-3.2,0.32,-0.84,0,0,Math.PI/2);
+C(0.06,0.06,1.76,10,M.bolt,   -3.2,0.32,0,0,0,Math.PI/2);
+B(0.18,0.42,0.18,M.frameDark, -3.2,0.32, 0.60);
+B(0.18,0.42,0.18,M.frameDark, -3.2,0.32,-0.60);
+
+// === MOTOR / BATTERY BOX ===
+B(1.85,0.72,1.12,M.motorBox, -0.4,bfY+0.54,0);
+B(1.90,0.10,1.18,M.motorDark,-0.4,bfY+0.95,0);
+B(1.86,0.08,0.10,M.motorDark,-0.4,bfY+0.74, 0.60);
+B(1.86,0.08,0.10,M.motorDark,-0.4,bfY+0.74,-0.60);
+B(0.28,0.22,0.28,M.motorDark,-1.18,bfY+0.76, 0.32);
+B(0.28,0.22,0.28,M.motorDark,-1.18,bfY+0.76,-0.32);
+
+// === RIGHT PIVOT TOWER ===
+const pvX=2.72;
+// Two upright plates
+B(0.28,1.90,0.22,M.bracket,pvX,bfY+1.13, 0.56);
+B(0.28,1.90,0.22,M.bracket,pvX,bfY+1.13,-0.56);
+// Horizontal cross plates
+B(0.28,0.22,1.38,M.bracket,pvX,bfY+2.08,0);
+B(0.28,0.22,1.38,M.bracket,pvX,bfY+0.52,0);
+B(0.28,0.22,1.38,M.bracket,pvX,bfY+1.28,0);
+// Gusset plate
+B(0.56,0.14,1.38,M.frameDark,pvX-0.15,bfY+1.68,0);
+// Main pivot pin
+C(0.11,0.11,1.6,12,M.bolt,pvX,bfY+1.78,0,0,0,Math.PI/2);
+// Bolt detail on uprights
+for(let j=0;j<4;j++){
+  C(0.06,0.06,0.13,8,M.bolt,pvX+0.19,bfY+0.65+j*0.46, 0.56);
+  C(0.06,0.06,0.13,8,M.bolt,pvX+0.19,bfY+0.65+j*0.46,-0.56);
+}
+// Top cap + rod
+B(0.30,0.55,0.38,M.motorDark,pvX+0.06,bfY+2.24,0);
+C(0.09,0.09,0.55,10,M.bolt,pvX+0.08,bfY+2.70,0);
+
+// === BOOM ARM ===
+const boomStart=new THREE.Vector3(pvX-0.12,bfY+1.78,0);
+const boomEnd  =new THREE.Vector3(-3.55,3.90,0);
+const boomVec  =new THREE.Vector3().subVectors(boomEnd,boomStart);
+const boomLen  =boomVec.length();
+const boomMid  =new THREE.Vector3().addVectors(boomStart,boomEnd).multiplyScalar(0.5);
+const boomAngle=Math.atan2(boomVec.y,boomVec.x);
+
+// Two parallel main boom members
+[-0.30,0.30].forEach(zOff=>{
+  const geo=new THREE.BoxGeometry(boomLen,0.22,0.22);
+  const m=new THREE.Mesh(geo,M.frameLight);
+  m.position.set(boomMid.x,boomMid.y,zOff);
+  m.rotation.z=boomAngle;
+  m.castShadow=true;m.receiveShadow=true;root.add(m);
+});
+
+// Cross braces
+for(let t=0.15;t<=0.88;t+=0.24){
+  const px=boomStart.x+boomVec.x*t;
+  const py=boomStart.y+boomVec.y*t;
+  B(0.20,0.20,0.64,M.frameMid,px,py,0);
+}
+
+// === HYDRAULIC CYLINDER ===
+const hydStart=new THREE.Vector3(0.55,bfY+0.30,0);
+const hydEnd  =new THREE.Vector3(
+  boomStart.x+boomVec.x*0.40,
+  boomStart.y+boomVec.y*0.40,0
+);
+const hydVec =new THREE.Vector3().subVectors(hydEnd,hydStart);
+const hydLen =hydVec.length();
+const hydMid =new THREE.Vector3().addVectors(hydStart,hydEnd).multiplyScalar(0.5);
+const hydAng =Math.atan2(hydVec.y,hydVec.x);
+
+// Outer barrel
+const hbGeo=new THREE.CylinderGeometry(0.14,0.14,hydLen*0.52,18);
+const hydBodyM=new THREE.Mesh(hbGeo,M.hydraulic);
+hydBodyM.position.set(hydMid.x-hydVec.x*0.08,hydMid.y-hydVec.y*0.08,0);
+hydBodyM.rotation.z=hydAng-Math.PI/2;
+hydBodyM.castShadow=true;root.add(hydBodyM);
+
+// Inner rod (lighter, slightly narrower)
+const hsGeo=new THREE.CylinderGeometry(0.09,0.09,hydLen*0.54,18);
+const hydShaftM=new THREE.Mesh(hsGeo,M.hydShaft);
+hydShaftM.position.set(hydMid.x+hydVec.x*0.10,hydMid.y+hydVec.y*0.10,0);
+hydShaftM.rotation.z=hydAng-Math.PI/2;
+hydShaftM.castShadow=true;root.add(hydShaftM);
+// End attachment pins
+C(0.11,0.11,0.75,12,M.bolt,hydStart.x,hydStart.y+0.08,0,0,0,Math.PI/2);
+C(0.11,0.11,0.75,12,M.bolt,hydEnd.x,hydEnd.y,0,0,0,Math.PI/2);
+// Cylinder collar rings
+C(0.18,0.18,0.10,16,M.frameDark,hydMid.x-hydVec.x*0.06,hydMid.y-hydVec.y*0.06+0.02,0,hydAng-Math.PI/2,0,0);
+
+// === BOOM HEAD BRACKET ===
+const bhX=boomEnd.x;
+const bhY=boomEnd.y;
+
+// Main vertical plate of bracket
+B(0.24,1.15,1.15,M.bracket,bhX-0.08,bhY,0);
+// Horizontal arms connecting box to bracket
+B(0.52,0.24,0.24,M.bracket,bhX-0.38,bhY+0.48, 0.44);
+B(0.52,0.24,0.24,M.bracket,bhX-0.38,bhY+0.48,-0.44);
+B(0.52,0.24,0.24,M.bracket,bhX-0.38,bhY-0.44, 0.44);
+B(0.52,0.24,0.24,M.bracket,bhX-0.38,bhY-0.44,-0.44);
+// Pivot bolts
+C(0.09,0.09,0.20,10,M.bolt,bhX,bhY+0.48,0,0,0,Math.PI/2);
+C(0.09,0.09,0.20,10,M.bolt,bhX,bhY-0.44,0,0,0,Math.PI/2);
+// Dark mounting block behind bracket (boom connection)
+B(0.38,0.58,0.58,M.motorDark,bhX+0.24,bhY+0.02,0);
+
+// === BROWN CARGO BOX ===
+const boxX=bhX-0.58;
+const boxY=bhY+0.65;
+const bW=1.60,bH=1.52,bD=1.42;
+// Use separate face meshes for multi-tone look like the image
+// Front face (medium brown)
+B(bW,bH,0.04,M.box,     boxX,boxY, bD/2+0.02);
+// Back face (darker)
+B(bW,bH,0.04,M.boxDark, boxX,boxY,-bD/2-0.02);
+// Left face (darker)
+B(0.04,bH,bD,M.boxDark, boxX-bW/2-0.02,boxY,0);
+// Right face (medium)
+B(0.04,bH,bD,M.box,     boxX+bW/2+0.02,boxY,0);
+// Top face (lightest)
+B(bW,0.04,bD,M.boxSide, boxX,boxY+bH/2+0.02,0);
+// Bottom face
+B(bW,0.04,bD,M.boxDark, boxX,boxY-bH/2-0.02,0);
+// Cardboard flap/crease lines on box top
+B(bW+0.02,0.04,0.04,M.boxDark,boxX,boxY+bH/2+0.04, bD*0.28);
+B(bW+0.02,0.04,0.04,M.boxDark,boxX,boxY+bH/2+0.04,-bD*0.28);
+B(0.04,0.04,bD+0.02,M.boxDark,boxX+bW*0.18,boxY+bH/2+0.04,0);
+B(0.04,0.04,bD+0.02,M.boxDark,boxX-bW*0.18,boxY+bH/2+0.04,0);
+// Vertical edge lines
+B(0.04,bH+0.02,0.04,M.boxDark,boxX,       boxY, bD/2+0.02);
+B(0.04,bH+0.02,0.04,M.boxDark,boxX+bW*0.4,boxY, bD/2+0.02);
+B(0.04,bH+0.02,0.04,M.boxDark,boxX-bW*0.4,boxY, bD/2+0.02);
+
+// === EXTRA DETAILS ===
+// Ground shadow plane (white, shadow only)
+const gndM=new THREE.Mesh(new THREE.PlaneGeometry(50,50),new THREE.ShadowMaterial({opacity:0.07}));
+gndM.rotation.x=-Math.PI/2;gndM.position.y=-0.01;gndM.receiveShadow=true;scene.add(gndM);
+
+// Cable along boom (thin dark tube)
+const cabPts=[
+  new THREE.Vector3(pvX-0.1,bfY+1.78,0.12),
+  new THREE.Vector3(boomMid.x*0.7+pvX*0.3,boomMid.y*0.7+bfY*0.3+0.4,0.12),
+  new THREE.Vector3(bhX+0.1,bhY+0.1,0.12)
+];
+const cabCurve=new THREE.CatmullRomCurve3(cabPts);
+root.add(new THREE.Mesh(new THREE.TubeGeometry(cabCurve,20,0.025,6,false),M.motorDark));
+// === AUTO-ROTATION ===
+let autoRotate=true;
+
+// === ORBIT CONTROLS ===
+let drag=false,rDrag=false,lm={x:0,y:0};
+const el=renderer.domElement;
+el.addEventListener('mousedown',e=>{drag=true;rDrag=e.button===2;lm={x:e.clientX,y:e.clientY};});
+el.addEventListener('contextmenu',e=>e.preventDefault());
+window.addEventListener('mouseup',()=>{drag=false;});
+window.addEventListener('mousemove',e=>{
+  if(!drag)return;
+  const dx=e.clientX-lm.x,dy=e.clientY-lm.y;
+  lm={x:e.clientX,y:e.clientY};
+  if(rDrag){
+    const r=new THREE.Vector3();
+    r.crossVectors(camera.getWorldDirection(new THREE.Vector3()),new THREE.Vector3(0,1,0)).normalize();
+    camTarget.addScaledVector(r,-dx*0.012);camTarget.y+=dy*0.012;
+  } else {
+    sph.theta-=dx*0.007;
+    sph.phi=Math.max(0.12,Math.min(1.5,sph.phi-dy*0.007));
+  }
+  updateCam();
+});
+el.addEventListener('wheel',e=>{
+  sph.r=Math.max(5,Math.min(55,sph.r+e.deltaY*0.025));updateCam();
+},{passive:true});
+let lt=null;
+el.addEventListener('touchstart',e=>{if(e.touches.length===1){drag=true;rDrag=false;lt={x:e.touches[0].clientX,y:e.touches[0].clientY};}});
+el.addEventListener('touchend',()=>{drag=false;});
+el.addEventListener('touchmove',e=>{
+  if(!drag||e.touches.length!==1)return;
+  const dx=e.touches[0].clientX-lt.x,dy=e.touches[0].clientY-lt.y;
+  lt={x:e.touches[0].clientX,y:e.touches[0].clientY};
+  sph.theta-=dx*0.007;sph.phi=Math.max(0.12,Math.min(1.5,sph.phi-dy*0.007));
+  updateCam();
+});
+function resize() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  camera.aspect=w/h;
+  if (w < h) {
+    sph.r = 30; // Zoom out for portrait
+  } else {
+    sph.r = 20;
+  }
+  camera.updateProjectionMatrix();
+  renderer.setSize(w,h);
+  updateCam();
+}
+window.addEventListener('resize', resize);
+if (typeof ResizeObserver !== 'undefined') {
+  new ResizeObserver(resize).observe(document.body);
+}
+setTimeout(resize, 300);
+(function loop(){requestAnimationFrame(loop);if(autoRotate){sph.theta+=0.006;updateCam();}renderer.render(scene,camera);})();
+</script>
+</body>
+</html>

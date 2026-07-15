@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Industrial Tank Assembly - 3D CAD</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#dde3ea; overflow:hidden; font-family:Arial,sans-serif; }
+</style>
+</head>
+<body>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════
+// SCENE
+// ═══════════════════════════════════════════════════════
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xdde3ea);
+scene.fog = new THREE.FogExp2(0xdde3ea, 0.022);
+
+const cam = new THREE.PerspectiveCamera(40, window.innerWidth/window.innerHeight, 0.05, 400);
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = false;
+document.body.appendChild(renderer.domElement);
+renderer.domElement.style.touchAction = 'none';
+
+// Lights
+scene.add(new THREE.AmbientLight(0xffffff, 0.72));
+const dl1 = new THREE.DirectionalLight(0xffffff, 0.95); dl1.position.set(6,14,9);  scene.add(dl1);
+const dl2 = new THREE.DirectionalLight(0xcce0ff, 0.50); dl2.position.set(-10,6,-8);scene.add(dl2);
+const dl3 = new THREE.DirectionalLight(0xffffff, 0.22); dl3.position.set(0,-4,5);  scene.add(dl3);
+
+// ── Materials ────────────────────────────────────────────
+function M(hex, sh=60, tr=false, op=1.0) {
+  return new THREE.MeshPhongMaterial({
+    color:hex, shininess:sh,
+    transparent:tr, opacity:op,
+    side: tr?THREE.DoubleSide:THREE.FrontSide,
+    depthWrite:!tr
+  });
+}
+
+// Shell — match the blue-gray transparent look of the CAD image
+const shellMat = M(0x8fa8c0, 20, true, 0.18);
+const shellTop  = M(0x8fa8c0, 20, true, 0.20);
+
+const mat = {
+  shell:      shellMat,
+  shellTop:   shellTop,
+  ring:       M(0x2e3e50, 90),       // dark ring/edge
+  ring2:      M(0x4a6070, 65),
+  baseDisk:   M(0x2a3a4a, 75),
+  coupling:   M(0x263545, 95),
+  silver:     M(0xadc0cc, 130),
+  darkMetal:  M(0x28333e, 80),
+  midMetal:   M(0x4a5e6e, 60),
+  // lower internals
+  bafflePlate:M(0x90aabb, 30, true, 0.52),
+  tan:        M(0xc4956a, 28),        // motor body
+  motorBlue:  M(0x3a6aaa, 85),        // motor flange/funnel
+  shaftGreen: M(0x3a8848, 55),        // shaft
+  tripodGreen:M(0x3a8848, 40),
+  yellowRod:  M(0xcfa020, 110),       // vertical gold rod
+  pipeSilver: M(0x8aa0ae, 80),        // vertical pipes
+  wireBlack:  M(0x1e2830, 30),
+  // top internals
+  floorDark:  M(0x2e3e2e, 35),        // PCB base floor
+  cyanBlock:  M(0x1eaabe, 95),        // teal blocks
+  cyanCap:    M(0x128898, 80),
+  grayBox:    M(0x6e8090, 55),
+  grayBox2:   M(0x5e7080, 50),
+  grayDark:   M(0x3a4a55, 70),
+  yellowDrum: M(0xd8a015, 80),        // big yellow horizontal drum
+  yellowEnd:  M(0xaa7c10, 65),
+  gaugeFace:  M(0xddeeff, 100),
+  gaugeRing:  M(0x1e2530, 70),
+  gaugeNeedle:M(0xdd2020, 60),
+  red:        M(0xcc3030, 60),
+  bracket:    M(0x4e6070, 60),
+  screw:      M(0x8aaaaa, 120),
+  nozzleGreen:M(0x3a7a48, 55),
+};
+
+// ── Assembly ─────────────────────────────────────────────
+const G = new THREE.Group();
+scene.add(G);
+const PI=Math.PI, HPI=Math.PI/2;
+
+function add(geo, m, x=0, y=0, z=0, rx=0, ry=0, rz=0) {
+  const mesh = new THREE.Mesh(geo, m);
+  mesh.position.set(x,y,z);
+  mesh.rotation.set(rx,ry,rz);
+  G.add(mesh); return mesh;
+}
+const Cyl =(rt,rb,h,s=32)=>new THREE.CylinderGeometry(rt,rb,h,s);
+const Box =(w,h,d)=>new THREE.BoxGeometry(w,h,d);
+const Tor =(R,r,s=64,t=16)=>new THREE.TorusGeometry(R,r,t,s);
+const Circ=(r,s=64)=>new THREE.CircleGeometry(r,s);
+
+// ════════════════════════════════════════════════════
+// PROPORTIONS (from image):
+//  R = 1.90 (outer radius)
+//  Lower body: y = -5.20 → +2.10  (h=7.30)
+//  Coupling:   y = +2.10 → +2.68  (h=0.58)
+//  Top body:   y = +2.68 → +5.30  (h=2.62)
+// ════════════════════════════════════════════════════
+const R = 1.90;
+
+// ── 1. BASE DISC ─────────────────────────────────────
+add(Cyl(R+0.22,R+0.22,0.26,64), mat.baseDisk,  0,-5.46,0);
+add(Cyl(R+0.14,R+0.14,0.13,64), mat.ring,      0,-5.28,0);
+add(Cyl(R+0.05,R+0.05,0.06,64), mat.ring2,     0,-5.18,0);
+// base inner ring (visible in image)
+add(Tor(R+0.22,0.035,64,12),    mat.ring,       0,-5.33,0, HPI,0,0);
+
+// ── 2. LOWER BODY (transparent shell) ────────────────
+add(Cyl(R,R,7.30,64,1), mat.shell, 0,-1.55,0); // open tube
+add(Circ(R,64),          mat.shell, 0,-5.20,0, -HPI,0,0); // bottom cap
+// Edge rings
+add(Tor(R,0.045,64,16), mat.ring,  0, 2.10,0, HPI,0,0); // top
+add(Tor(R,0.045,64,16), mat.ring,  0,-5.20,0, HPI,0,0); // bottom
+
+// ── 3. COUPLING BAND ─────────────────────────────────
+add(Cyl(R+0.06,R+0.06,0.58,64), mat.coupling,  0,2.39,0);
+add(Cyl(R+0.00,R+0.00,0.60,64), mat.ring,      0,2.39,0);
+// bolts
+for(let i=0;i<10;i++){
+  const a=(i/10)*PI*2;
+  add(Cyl(0.030,0.030,0.10,8), mat.screw,
+    (R+0.00)*Math.sin(a),2.39,(R+0.00)*Math.cos(a), HPI,0,0);
+}
+
+// ── 4. TOP SECTION (transparent shell) ───────────────
+add(Cyl(R,R,2.62,64,1),  mat.shellTop, 0,3.99,0);
+add(Cyl(R,R,0.07,64),    mat.shellTop, 0,5.27,0); // flat top
+add(Tor(R,0.045,64,16),  mat.ring,     0,5.31,0, HPI,0,0); // top ring
+add(Tor(R,0.045,64,16),  mat.ring,     0,2.68,0, HPI,0,0);
+// vent nozzle top-right
+add(Cyl(0.038,0.038,0.35,12), mat.darkMetal, 1.32,5.50,0);
+add(Cyl(0.055,0.055,0.06,12), mat.ring,      1.32,5.65,0);
+
+// ── 5. YELLOW GOLD ROD ────────────────────────────────
+// Right side, full height inside shell
+add(Cyl(0.048,0.048,10.90,14), mat.yellowRod, 1.16,0.02,0);
+add(Cyl(0.065,0.065,0.11,10),  mat.ring,      1.16,-5.05,0);
+add(Cyl(0.065,0.065,0.11,10),  mat.ring,      1.16, 5.30,0);
+
+// ── 6. TWO VERTICAL PIPES — attached beside yellow rod, full height ───────
+// Sit just left of the yellow rod (x=1.16), slightly offset in z
+// Run from base (y=-5.10) to top (y=+5.20), center y=0.05, height=10.30
+add(Cyl(0.028,0.028,10.30,10), mat.pipeSilver, 0.95, 0.05,  0.10);
+add(Cyl(0.028,0.028,10.30,10), mat.pipeSilver, 0.95, 0.05, -0.10);
+// Small connector rings where pipes meet yellow rod at top and bottom
+add(Cyl(0.045,0.045,0.07,10),  mat.ring,       0.95,-5.05,  0.10);
+add(Cyl(0.045,0.045,0.07,10),  mat.ring,       0.95,-5.05, -0.10);
+add(Cyl(0.045,0.045,0.07,10),  mat.ring,       0.95, 5.18,  0.10);
+add(Cyl(0.045,0.045,0.07,10),  mat.ring,       0.95, 5.18, -0.10);
+
+// ── 7. LARGE BAFFLE PLATE ────────────────────────────
+// Right of center, slightly angled, tall
+add(Box(0.022,5.45,2.75), mat.bafflePlate, 0.40,-1.72,0.06);
+
+// ── 8. MOTOR + TRIPOD ────────────────────────────────
+const MX=-0.25;
+// Base ring on floor
+add(Cyl(0.55,0.55,0.055,32), mat.ring, MX,-4.38,0);
+// Tripod legs (3, very thin wire-like)
+for(let i=0;i<3;i++){
+  const a=(i/3)*PI*2+0.25;
+  const tx=MX, ty=-3.02, tz=0.00;
+  const bx=MX+Math.sin(a)*0.50, by=-4.36, bz=Math.cos(a)*0.50;
+  const dx=bx-tx,dy2=by-ty,dz=bz-tz;
+  const L=Math.sqrt(dx*dx+dy2*dy2+dz*dz);
+  const leg=new THREE.Mesh(Cyl(0.020,0.020,L,8), mat.tripodGreen);
+  leg.position.set((tx+bx)/2,(ty+by)/2,(tz+bz)/2);
+  leg.quaternion.setFromUnitVectors(
+    new THREE.Vector3(0,1,0),
+    new THREE.Vector3(dx/L,dy2/L,dz/L));
+  G.add(leg);
+}
+// Green shaft (long, thin)
+add(Cyl(0.038,0.038,1.45,14), mat.shaftGreen, MX,-3.66,0);
+// Green shaft collar
+add(Cyl(0.070,0.070,0.13,14), mat.ring,       MX,-2.93,0);
+// Blue wide flange disc
+add(Cyl(0.52,0.52,0.13,32),  mat.motorBlue,   MX,-2.80,0);
+// Blue funnel up from disc
+add(Cyl(0.35,0.52,0.26,32),  mat.motorBlue,   MX,-2.67,0);
+// Tan motor body
+add(Cyl(0.29,0.32,1.00,32),  mat.tan,         MX,-2.13,0);
+// Motor dome top
+add(new THREE.SphereGeometry(0.29,32,16,0,PI*2,0,PI/2), mat.tan, MX,-1.63,0);
+add(Cyl(0.060,0.060,0.06,12), mat.ring,        MX,-1.625,0);
+
+
+
+
+
+// ── 10. PRESSURE GAUGE (far left) ────────────────────
+// Angled bracket pipe
+add(Cyl(0.026,0.026,0.52,10), mat.pipeSilver, -1.44,3.07,-0.55, 0.55,0,0.28);
+add(Cyl(0.026,0.026,0.38,10), mat.pipeSilver, -1.44,2.83,-0.26, 0.28,0,0);
+// Gauge outer ring
+add(Cyl(0.235,0.235,0.13,32), mat.gaugeRing,  -1.41,3.30,-0.65);
+add(Cyl(0.235,0.235,0.055,32),mat.bracket,    -1.41,3.23,-0.65);
+// Gauge face
+add(Cyl(0.175,0.175,0.10,32), mat.gaugeFace,  -1.41,3.35,-0.65);
+// Needle
+add(Box(0.018,0.13,0.008),    mat.gaugeNeedle,-1.41,3.39,-0.59, 0,0,0.58);
+// Small fitting/valve below gauge
+add(Box(0.10,0.12,0.10),      mat.grayDark,   -1.48,2.90,-0.22);
+add(Cyl(0.03,0.03,0.18,8),    mat.pipeSilver, -1.48,2.82,-0.10, 0.4,0,0.1);
+
+// ── 11. CYAN TEAL BLOCKS (row of 4) ──────────────────
+for(let i=0;i<4;i++){
+  const bx=-0.80+i*0.30;
+  add(Box(0.23,0.50,0.31), mat.cyanBlock, bx, 3.23,-0.08);
+  add(Box(0.21,0.07,0.29), mat.cyanCap,   bx, 3.52,-0.08);
+  add(Cyl(0.038,0.038,0.09,10), mat.screw, bx,3.59,-0.08);
+}
+// Rail under blocks
+add(Box(1.25,0.065,0.34), mat.bracket, -0.50,2.96,-0.08);
+
+// ── 12. MAIN GRAY CONTROL BOX (center) ───────────────
+add(Box(0.82,0.54,0.62), mat.grayBox,   0.20,3.22,-0.30);
+add(Box(0.80,0.075,0.60),mat.grayDark,  0.20,3.51,-0.30);
+// Face details
+add(Box(0.15,0.15,0.035),mat.darkMetal, 0.04,3.22,-0.00);
+add(Box(0.15,0.15,0.035),mat.grayBox2,  0.28,3.22,-0.00);
+add(Box(0.07,0.07,0.035),mat.red,       0.08,3.36,-0.00);
+// Pipe out right
+add(Cyl(0.028,0.028,0.75,10), mat.pipeSilver, 0.60,3.62,-0.28, 0,0,HPI);
+add(Cyl(0.028,0.028,1.10,10), mat.pipeSilver, 1.18,3.62,-0.28, 0,0,HPI);
+add(Cyl(0.028,0.028,0.52,10), mat.pipeSilver, 1.58,3.80,-0.28, 0.32,0,0);
+
+// ── 13. SECONDARY BOX (center-right) ─────────────────
+add(Box(0.50,0.72,0.50), mat.grayBox2,  0.72,3.14,-0.24);
+add(Box(0.48,0.07,0.48), mat.grayDark,  0.72,3.54,-0.24);
+add(Cyl(0.09,0.09,0.18,16), mat.darkMetal, 0.72,3.70,-0.24);
+add(Cyl(0.055,0.055,0.10,10),mat.pipeSilver,0.72,3.86,-0.24);
+// connectors
+add(Cyl(0.028,0.028,0.10,8), mat.screw,  0.50,3.20,-0.24, 0,0,HPI);
+add(Cyl(0.028,0.028,0.10,8), mat.screw,  0.94,3.20,-0.24, 0,0,HPI);
+
+// ── 14. BIG YELLOW DRUM (horizontal, right) ──────────
+add(Cyl(0.50,0.50,0.88,32),  mat.yellowDrum, 1.06,3.18,0.00, 0,0,HPI);
+add(Cyl(0.52,0.52,0.055,32), mat.yellowEnd,  0.61,3.18,0.00, 0,0,HPI);
+add(Cyl(0.52,0.52,0.055,32), mat.yellowEnd,  1.51,3.18,0.00, 0,0,HPI);
+add(Cyl(0.09,0.09,0.20,16),  mat.darkMetal,  1.58,3.18,0.00, 0,0,HPI);
+// Coil lines on drum
+for(let i=0;i<7;i++){
+  add(Tor(0.50,0.010,32,8), mat.yellowEnd,
+    1.06,3.18,0.00, 0,0,HPI+(i-3)*0.115);
+}
+// Mount under drum
+add(Box(0.90,0.095,0.52), mat.grayDark, 1.06,2.73,0.00);
+add(Cyl(0.028,0.028,0.38,10), mat.pipeSilver, 1.06,3.74,0.00);
+
+// ── 15. CONNECTOR PIN ROW ────────────────────────────
+add(Box(1.18,0.055,0.19), mat.bracket, -0.22,3.60,0.28);
+for(let i=0;i<6;i++){
+  add(Cyl(0.026,0.026,0.09,8), mat.screw, -0.54+i*0.20,3.65,0.28);
+}
+
+// ── 16. TOP HORIZONTAL PIPE ──────────────────────────
+add(Cyl(0.024,0.024,2.20,10), mat.pipeSilver,  0.04,4.22,0.40, 0,0,HPI);
+add(Cyl(0.024,0.024,0.52,10), mat.pipeSilver,  1.16,4.22,0.40, 0.25,0,0);
+
+// ── 17. WIRING HARNESS ───────────────────────────────
+add(Cyl(0.016,0.016,2.75,8), mat.wireBlack, -0.58,3.64, 0.50, 0,0,HPI);
+add(Cyl(0.016,0.016,2.75,8), mat.wireBlack, -0.58,3.54,-0.52, 0,0,HPI);
+
+// ── 18. SMALL PIPE — left side, runs from motor bulb up towards yellow rod ──
+// Vertical pipe on left inner wall, thicker like a real pipe
+// Starts at motor bulb top (y=-1.63) goes up to top section (y=2.65)
+const pipeX = -1.50;  // left side, near shell wall
+const pipeVertTop = 2.65;
+const pipeVertBot = -1.63;
+const pipeVertH   = pipeVertTop - pipeVertBot;
+const pipeVertMid = (pipeVertTop + pipeVertBot) / 2;
+// Main vertical pipe
+add(Cyl(0.045,0.045,pipeVertH,12), mat.wireBlack, pipeX, pipeVertMid, 0.0);
+// Horizontal connector from left wall pipe to motor bulb
+const pipeHorizLen = Math.abs(MX - pipeX);
+const pipeHorizMidX = (pipeX + MX) / 2;
+add(Cyl(0.045,0.045,pipeHorizLen,12), mat.wireBlack, pipeHorizMidX, pipeVertBot, 0.0, 0,0,Math.PI/2);
+// Elbow joint at corner
+add(new THREE.SphereGeometry(0.050,12,12), mat.wireBlack, pipeX, pipeVertBot, 0.0);
+// Top fitting where pipe enters top section
+add(Cyl(0.065,0.065,0.08,12), mat.ring, pipeX, pipeVertTop, 0.0);
+// Bottom fitting at motor connection
+add(Cyl(0.065,0.065,0.08,12), mat.ring, MX, pipeVertBot, 0.0);
+
+// ═══════════════════════════════════════════════════════
+// CAMERA ORBIT
+// ═══════════════════════════════════════════════════════
+let autoRot=true;
+let camSph={th:0.38, ph:1.13, r:13.0};
+let isDrag=false, prevMouse={x:0,y:0};
+
+function updateCam(){
+  cam.position.set(
+    camSph.r*Math.sin(camSph.ph)*Math.sin(camSph.th),
+    camSph.r*Math.cos(camSph.ph)+0.6,
+    camSph.r*Math.sin(camSph.ph)*Math.cos(camSph.th)
+  );
+  cam.lookAt(0, 0.2, 0);
+}
+
+const cv=renderer.domElement;
+cv.addEventListener('mousedown', e=>{isDrag=true;prevMouse={x:e.clientX,y:e.clientY};autoRot=false;});
+cv.addEventListener('mouseup',   ()=>isDrag=false);
+cv.addEventListener('mouseleave',()=>isDrag=false);
+cv.addEventListener('mousemove', e=>{
+  if(!isDrag)return;
+  camSph.th-=(e.clientX-prevMouse.x)*0.007;
+  camSph.ph=Math.max(0.15,Math.min(PI-0.10,camSph.ph+(e.clientY-prevMouse.y)*0.007));
+  prevMouse={x:e.clientX,y:e.clientY}; updateCam();
+});
+cv.addEventListener('wheel', e=>{
+  camSph.r=Math.max(4,Math.min(28,camSph.r+e.deltaY*0.013));
+  updateCam();
+},{passive:true});
+// Touch
+cv.addEventListener('touchstart', e=>{isDrag=true;prevMouse={x:e.touches[0].clientX,y:e.touches[0].clientY};autoRot=false;});
+cv.addEventListener('touchend',   ()=>isDrag=false);
+cv.addEventListener('touchmove',  e=>{
+  if(!isDrag)return;
+  camSph.th-=(e.touches[0].clientX-prevMouse.x)*0.007;
+  camSph.ph=Math.max(0.15,Math.min(PI-0.10,camSph.ph+(e.touches[0].clientY-prevMouse.y)*0.007));
+  prevMouse={x:e.touches[0].clientX,y:e.touches[0].clientY}; updateCam();
+});
+
+function resize() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  cam.aspect=w/h;
+  
+  if (w < h) {
+    camSph.r = 18.0; // Zoom out for portrait
+  } else {
+    camSph.r = 13.0; // Default zoom
+  }
+  
+  cam.updateProjectionMatrix();
+  renderer.setSize(w,h);
+  updateCam();
+}
+window.addEventListener('resize', resize);
+if (typeof ResizeObserver !== 'undefined') {
+  new ResizeObserver(resize).observe(document.body);
+}
+setTimeout(resize, 300);
+
+function toggleAuto(){ autoRot=!autoRot; }
+function resetView(){ camSph={th:0.38,ph:1.13,r:13.0}; autoRot=true; updateCam(); }
+function topView(){
+  camSph={th:0.38,ph:0.25,r:11.0}; autoRot=false; updateCam();
+}
+function dlFile(){
+  const b=new Blob(['<!DOCTYPE html>'+document.documentElement.outerHTML],{type:'text/html'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(b);
+  a.download='industrial_tank_cad_final.html';
+  a.click();
+}
+
+updateCam();
+
+// ═══════════════════════════════════════════════════════
+// RENDER LOOP
+// ═══════════════════════════════════════════════════════
+function loop(){
+  requestAnimationFrame(loop);
+  if(autoRot){ camSph.th+=0.0038; updateCam(); }
+  renderer.render(scene, cam);
+}
+loop();
+</script>
+</body>
+</html>
