@@ -1,224 +1,228 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
+const SERVICES_DROPDOWN = [
+  { name: "Industrial Automation", href: "/services#automation" },
+  { name: "Mechanical Engineering", href: "/services#mechanical" },
+  { name: "Electrical Engineering", href: "/services#electrical" },
+  { name: "Fabrication", href: "/services#fabrication" },
+  { name: "CNC Machining", href: "/services#cnc" },
+  { name: "Project Consulting", href: "/services#consulting" },
+];
+
+const navLinks = [
+  { name: "Home", href: "/" },
+  { name: "Projects", href: "/projects" },
+  { name: "Services", href: "/services", hasDropdown: true },
+  { name: "Gallery", href: "/gallery" },
+  { name: "About Us", href: "/about" },
+  { name: "Careers", href: "/careers" },
+  { name: "Contact Us", href: "/contact" },
+];
+
 const Navbar = () => {
-  const [heroVisible, setHeroVisible] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isServicesOpen, setIsServicesOpen] = useState(false);
   const pathname = usePathname();
-  const isHomePage = pathname === "/";
-  const observerRef = useRef<IntersectionObserver | null>(null);
 
-  useEffect(() => {
-    // On non-home pages always show solid navbar
-    if (!isHomePage) {
-      setHeroVisible(false);
-      return;
-    }
-
-    // On home page: watch hero section visibility
-    const heroEl = document.getElementById("hero");
-    if (!heroEl) {
-      // Fallback: scroll-based threshold of 80px
-      const handleScroll = () => setHeroVisible(window.scrollY < 80);
-      handleScroll();
-      window.addEventListener("scroll", handleScroll, { passive: true });
-      return () => window.removeEventListener("scroll", handleScroll);
-    }
-
-    observerRef.current = new IntersectionObserver(
-      ([entry]) => setHeroVisible(entry.isIntersecting),
-      {
-        root: null,
-        // Fire when hero is at least 5% still visible (near-bottom of hero)
-        threshold: 0.05,
-      }
-    );
-    observerRef.current.observe(heroEl);
-
-    return () => observerRef.current?.disconnect();
-  }, [isHomePage]);
-
-  // Prevent page scroll when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = "hidden";
-      document.documentElement.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
-      document.documentElement.style.overflow = "";
     }
-    return () => {
-      document.body.style.overflow = "";
-      document.documentElement.style.overflow = "";
-    };
+    return () => { document.body.style.overflow = ""; };
   }, [isMobileMenuOpen]);
 
-  const navLinks = [
-    { name: "Home", href: "/" },
-    { name: "Projects", href: "/projects" },
-    { name: "Services", href: "/services" },
-    { name: "Gallery", href: "/gallery" },
-    { name: "About Us", href: "/about" },
-  ];
-
-  // When hero is visible (at top of home page) → transparent
-  // When scrolled past hero, or on other pages → solid black
-  const isTransparent = isHomePage && heroVisible && !isMobileMenuOpen;
-
   return (
-    <motion.nav
-      className={`fixed top-0 left-0 right-0 w-full ${
-        isMobileMenuOpen ? "h-screen" : "py-2.5"
-      }`}
-      animate={{
-        backgroundColor: isTransparent
-          ? "rgba(0,0,0,0)"
-          : "rgba(0,0,0,1)",
-        borderBottomColor: isTransparent
-          ? "rgba(255,255,255,0)"
-          : "rgba(255,255,255,0.06)",
-        boxShadow: isTransparent
-          ? "0 0 0 rgba(0,0,0,0)"
-          : "0 4px 24px rgba(0,0,0,0.65)",
-      }}
-      transition={{ duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
-      style={{
-        zIndex: 2147483647,
-        borderBottomWidth: "1px",
-        borderBottomStyle: "solid",
-      }}
-    >
-      <div className="w-full px-5 md:px-10 flex justify-between items-center max-w-[1920px] mx-auto relative z-50">
-        {/* Logo */}
+    <header className="fixed top-0 left-0 right-0 w-full z-[9999] bg-white flex flex-col shadow-sm">
+      {/* Top Branding Row */}
+      <div className="w-full py-4 px-5 md:px-10 flex justify-center items-center border-b border-gray-100 relative">
         <Link
           href="/"
-          className="flex items-center gap-2.5 relative z-10 group shrink-0"
+          className="flex items-center gap-3 relative z-10 group shrink-0"
           onClick={() => setIsMobileMenuOpen(false)}
         >
-          <div className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center group-hover:rotate-6 transition-all duration-500">
+          <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center group-hover:rotate-6 transition-all duration-500">
             <Image
               src="/Logo/Untitled design logo.png"
               alt="Excel Ardor Logo"
-              width={80}
-              height={80}
+              width={100}
+              height={100}
               priority
               quality={100}
-              className="w-full h-full object-contain drop-shadow-[0_0_12px_rgba(255,255,255,0.15)]"
+              className="w-full h-full object-contain drop-shadow-md"
             />
           </div>
-          <span className="text-[#4A6B35] text-lg font-bold tracking-tighter">
-            EXCEL ARDOR
+          <span className="text-[#4A6B35] text-xl md:text-2xl font-black tracking-tighter uppercase">
+            Excel Ardor
           </span>
         </Link>
-
-        {/* Center Navigation Links (Desktop) */}
-        <div className="hidden lg:flex items-center gap-8 relative z-10">
-          {navLinks.map((link) => {
-            const isActive = pathname === link.href;
-            return (
-              <Link
-                key={link.name}
-                href={link.href}
-                className={`text-[11px] font-bold transition-all duration-300 uppercase tracking-[0.22em] relative group ${
-                  isActive ? "text-white" : "text-white/45 hover:text-white"
-                }`}
-              >
-                {link.name}
-                <div
-                  className={`absolute -bottom-1.5 left-0 h-[1.5px] bg-white rounded-full transition-all duration-300 shadow-[0_0_8px_rgba(255,255,255,0.5)] ${
-                    isActive
-                      ? "w-full opacity-100"
-                      : "w-0 opacity-0 group-hover:w-full group-hover:opacity-100"
-                  }`}
-                />
-              </Link>
-            );
-          })}
-        </div>
-
-        {/* Desktop CTA */}
-        <div className="hidden lg:block relative z-10">
-          <Link
-            href="/contact"
-            className="px-5 py-2 rounded-full text-[11px] font-black uppercase tracking-widest bg-white text-black transition-all duration-200 flex items-center justify-center shadow-[0_6px_20px_rgba(255,255,255,0.08)] hover:shadow-[0_10px_30px_rgba(255,255,255,0.18)] hover:bg-blue-600 hover:text-white hover:-translate-y-0.5 active:scale-95"
-          >
-            Contact us
-          </Link>
-        </div>
-
-        {/* Mobile Toggle */}
+        
+        {/* Mobile Toggle inside Branding Row */}
         <button
-          className="lg:hidden p-2 text-white relative z-50 bg-white/5 rounded-lg border border-white/10 active:scale-90 transition-all hover:bg-white/10"
+          className="lg:hidden absolute right-5 p-2 text-black active:scale-90 transition-all hover:bg-gray-100 rounded-lg"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           aria-label="Toggle Menu"
         >
-          {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
+
+      {/* Bottom Navigation Row (Desktop) */}
+      <nav className="hidden lg:flex w-full justify-center items-center py-3 bg-white border-b border-gray-200 shadow-sm relative">
+        <div className="flex items-center gap-10">
+          {navLinks.map((link) => {
+            const isActive = pathname === link.href || (link.href === "/services" && pathname.startsWith("/services"));
+            
+            if (link.hasDropdown) {
+              return (
+                <div 
+                  key={link.name} 
+                  className="relative group"
+                  onMouseEnter={() => setIsServicesOpen(true)}
+                  onMouseLeave={() => setIsServicesOpen(false)}
+                >
+                  <Link
+                    href={link.href}
+                    className={`text-[13px] font-bold transition-colors duration-300 uppercase tracking-widest flex items-center gap-1 ${
+                      isActive ? "text-[#4A6B35]" : "text-gray-700 hover:text-[#4A6B35]"
+                    }`}
+                  >
+                    {link.name}
+                    <ChevronDown size={14} className={`transition-transform duration-300 ${isServicesOpen ? "rotate-180" : ""}`} />
+                  </Link>
+                  <div
+                    className={`absolute -bottom-1.5 left-0 h-[2px] bg-[#4A6B35] rounded-full transition-all duration-300 ${
+                      isActive ? "w-full opacity-100" : "w-0 opacity-0 group-hover:w-full group-hover:opacity-100"
+                    }`}
+                  />
+                  
+                  {/* Dropdown Menu */}
+                  <AnimatePresence>
+                    {isServicesOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute top-full left-1/2 -translate-x-1/2 pt-4 w-64"
+                      >
+                        <div className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden flex flex-col py-2">
+                          {SERVICES_DROPDOWN.map((item) => (
+                            <Link
+                              key={item.name}
+                              href={item.href}
+                              className="px-5 py-3 text-sm font-semibold text-gray-600 hover:text-[#4A6B35] hover:bg-gray-50 transition-colors block"
+                            >
+                              {item.name}
+                            </Link>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            }
+
+            return (
+              <div key={link.name} className="relative group">
+                <Link
+                  href={link.href}
+                  className={`text-[13px] font-bold transition-colors duration-300 uppercase tracking-widest ${
+                    isActive ? "text-[#4A6B35]" : "text-gray-700 hover:text-[#4A6B35]"
+                  }`}
+                >
+                  {link.name}
+                </Link>
+                <div
+                  className={`absolute -bottom-1.5 left-0 h-[2px] bg-[#4A6B35] rounded-full transition-all duration-300 ${
+                    isActive ? "w-full opacity-100" : "w-0 opacity-0 group-hover:w-full group-hover:opacity-100"
+                  }`}
+                />
+              </div>
+            );
+          })}
+        </div>
+      </nav>
 
       {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="lg:hidden absolute inset-0 bg-black z-40 overflow-y-auto flex flex-col justify-center items-center"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "100vh" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="lg:hidden absolute top-[73px] left-0 right-0 bg-white z-40 overflow-y-auto flex flex-col items-center border-t border-gray-100 pb-20 shadow-lg"
           >
-            <div className="flex flex-col gap-6 p-8 pt-28 pb-14 w-full max-w-lg items-center text-center">
-              {navLinks.map((link, idx) => (
-                <motion.div
-                  key={link.name}
-                  initial={{ opacity: 0, y: 24 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -16 }}
-                  transition={{
-                    delay: idx * 0.07,
-                    duration: 0.45,
-                    ease: [0.16, 1, 0.3, 1],
-                  }}
-                  className="w-full"
-                >
+            <div className="flex flex-col w-full px-6 py-8 gap-2">
+              {navLinks.map((link) => {
+                const isActive = pathname === link.href || (link.href === "/services" && pathname.startsWith("/services"));
+                
+                if (link.hasDropdown) {
+                  return (
+                    <div key={link.name} className="w-full flex flex-col border-b border-gray-100 pb-2">
+                      <button
+                        onClick={() => setIsServicesOpen(!isServicesOpen)}
+                        className={`w-full flex items-center justify-between py-4 text-xl font-bold uppercase tracking-wide transition-colors ${
+                          isActive ? "text-[#4A6B35]" : "text-black hover:text-[#4A6B35]"
+                        }`}
+                      >
+                        {link.name}
+                        <ChevronDown size={20} className={`transition-transform duration-300 ${isServicesOpen ? "rotate-180" : ""}`} />
+                      </button>
+                      
+                      <AnimatePresence>
+                        {isServicesOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="flex flex-col pl-4 gap-1 overflow-hidden"
+                          >
+                            {SERVICES_DROPDOWN.map((item) => (
+                              <Link
+                                key={item.name}
+                                href={item.href}
+                                className="py-3 text-base font-semibold text-gray-600 hover:text-[#4A6B35]"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                              >
+                                {item.name}
+                              </Link>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                }
+
+                return (
                   <Link
+                    key={link.name}
                     href={link.href}
-                    className="block text-3xl md:text-4xl font-black text-white/35 hover:text-white transition-all uppercase tracking-tighter py-2.5 active:scale-95"
+                    className={`block w-full py-4 text-xl font-bold uppercase tracking-wide border-b border-gray-100 transition-colors ${
+                      isActive ? "text-[#4A6B35]" : "text-black hover:text-[#4A6B35]"
+                    }`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {link.name}
                   </Link>
-                </motion.div>
-              ))}
-              <motion.div
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -16 }}
-                transition={{
-                  delay: 0.35,
-                  duration: 0.45,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-                className="pt-8 mt-4 border-t border-white/10 w-full flex justify-center"
-              >
-                <Link
-                  href="/contact"
-                  className="px-10 py-4 rounded-2xl text-[14px] font-black uppercase tracking-[0.2em] bg-white text-black text-center shadow-2xl active:scale-95 hover:bg-blue-600 hover:text-white transition-all"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Contact us
-                </Link>
-              </motion.div>
+                );
+              })}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.nav>
+    </header>
   );
 };
 
