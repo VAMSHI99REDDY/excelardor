@@ -321,9 +321,9 @@ ${formData.name}`;
         </div>
 
         {!isSuccess ? (
-          <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden min-h-0">
+          <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
             {/* Scrollable Form Body */}
-            <div className="flex-1 overflow-y-auto overscroll-contain p-6 md:p-8 space-y-5">
+            <div data-lenis-prevent className="flex-1 overflow-y-auto p-6 md:p-8 space-y-5 min-h-0 relative">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">Full Name *</label>
