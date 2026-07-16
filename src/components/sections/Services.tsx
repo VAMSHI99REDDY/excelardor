@@ -142,12 +142,15 @@ const Services = () => {
   const Icon = data.service.icon;
 
   // Cinematic Apple-style Framer Motion transitions
-  const transition = { duration: 0.8, ease: [0.22, 1, 0.36, 1] };
-  
   const fadeSlideVariants = {
     initial: { opacity: 0, y: 30, filter: "blur(12px)", scale: 0.97 },
     animate: { opacity: 1, y: 0, filter: "blur(0px)", scale: 1 },
     exit: { opacity: 0, y: -30, filter: "blur(12px)", scale: 1.03 },
+  };
+
+  const transition = {
+    duration: 0.65,
+    ease: [0.22, 1, 0.36, 1] as const
   };
 
   return (
