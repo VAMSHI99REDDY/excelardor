@@ -75,7 +75,7 @@ const ProjectCardItem = ({
   }, [isMobile, idx, onHover]);
 
   // Framer motion easing
-  const ease = [0.22, 1, 0.36, 1];
+  const ease: [number, number, number, number] = [0.22, 1, 0.36, 1];
   const duration = 0.65;
 
   return (
