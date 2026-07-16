@@ -1,194 +1,260 @@
 "use client";
 
-import React from "react";
-import { Hammer, Settings, Layers, Zap, Cog, ShieldCheck, Factory, Box } from "lucide-react";
-import { motion } from "framer-motion";
-import { useRef } from "react";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Settings, 
+  Cog, 
+  Layers, 
+  Hammer, 
+  Target, 
+  ShieldCheck, 
+  CheckCircle,
+  Wrench
+} from "lucide-react";
 
-const services = [
+const SHOWCASE_DATA = [
   {
-    title: "Precision Mechanical Components",
-    description: "Sub assemblies and components tailored for Defense and Aerospace applications.",
-    icon: <Settings size={24} />,
-    color: "from-blue-500/20 to-transparent",
-    img: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=800",
+    quote: "Engineering excellence begins with precision, innovation, and uncompromising quality.",
+    person: {
+      name: "P. Prasad",
+      role: "Senior Mechanical Consultant",
+      image: "", // Placeholder for premium corporate portrait
+    },
+    service: {
+      title: "Precision Mechanical Components",
+      description: "High-precision machined components manufactured to exacting standards for aerospace, defence, industrial and mobility applications.",
+      icon: Settings,
+    },
   },
   {
-    title: "Precision Fabrication",
-    description: "Specialized engineering and fabrication works for complex military systems.",
-    icon: <Hammer size={24} />,
-    color: "from-cyan-500/20 to-transparent",
-    img: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?q=80&w=800",
+    quote: "Every machine we build is designed to solve complex manufacturing challenges with reliability and efficiency.",
+    person: {
+      name: "P. Sai Charan",
+      role: "Additional Director",
+      image: "/logos/peopleimg/P. Sai Charan – Additional Director.png",
+    },
+    service: {
+      title: "Special Purpose Machines",
+      description: "Custom-engineered automated systems and specialized machinery designed to optimize production and ensure operational excellence.",
+      icon: Wrench,
+    },
   },
   {
-    title: "Decontamination Equipment",
-    description: "Essential systems for maintaining safety and operational readiness.",
-    icon: <ShieldCheck size={24} />,
-    color: "from-emerald-500/20 to-transparent",
-    img: "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=800",
+    quote: "Reliable hydraulic systems are built through precision manufacturing, rigorous testing, and continuous improvement.",
+    person: {
+      name: "Ch. Sudheer",
+      role: "Plant Head & Operations Manager",
+      image: "/logos/peopleimg/Mr. Ch. Sudheer – Plant Head & Operations Manager.png",
+    },
+    service: {
+      title: "Industrial Hydraulic Equipment",
+      description: "Advanced high-pressure hydraulic cylinders, actuators, and power packs engineered for maximum stability and endurance.",
+      icon: Cog,
+    },
   },
   {
-    title: "Composite & FRP Components",
-    subtitle: "Aerospace, Defence & Customized Applications",
-    description: "Providing lightweight, durable, and precision-engineered Composite and FRP solutions for Aerospace, Defence, and customized industrial requirements.",
-    icon: <Layers size={24} />,
-    color: "from-orange-500/20 to-transparent",
-    img: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?q=80&w=800",
+    quote: "Innovation reaches greater heights when engineering precision meets structural excellence.",
+    person: {
+      name: "N. Rajasekhar",
+      role: "Plant Supervisor",
+      image: "/logos/peopleimg/Mr. N. Rajasekhar – Plant Supervisor & Maintenance Incharge.png",
+    },
+    service: {
+      title: "Telescopic Masts",
+      description: "Highly reliable Electro Mechanical, Pneumatic, and Hydraulic mast systems for radar, communication, and strategic surveillance.",
+      icon: Layers,
+    },
   },
   {
-    title: "Telescopic Masts",
-    description: "Electro Mechanical, Pneumatic, Hydraulic, Push Fit, and Hand Crank winch options.",
-    icon: <Layers size={24} />,
-    color: "from-indigo-500/20 to-transparent",
-    img: "https://images.unsplash.com/photo-1508247271404-5161d9a04f2f?q=80&w=800",
+    quote: "Every successful product begins with intelligent design, uncompromising quality, and customer-focused engineering.",
+    person: {
+      name: "R. Sunny Babu",
+      role: "Design & Quality Engineer",
+      image: "", // Placeholder
+    },
+    service: {
+      title: "Custom Engineering Solutions",
+      description: "End-to-end design engineering, rigorous quality assurance, and custom fabrication tailored to unique industrial requirements.",
+      icon: Hammer,
+    },
   },
   {
-    title: "Annual Maintenance Support for Telescopic Mast",
-    description: "Providing reliable annual maintenance services to ensure optimal performance and extended life of telescopic mast systems.",
-    icon: <Cog size={24} />,
-    color: "from-teal-500/20 to-transparent",
-    img: "https://images.unsplash.com/photo-1518314916301-73c13b10c662?q=80&w=800",
+    quote: "We don't just build components — we engineer mission-critical solutions with precision, reliability, and purpose.",
+    person: {
+      name: "N. Vijay Kumar",
+      role: "Founder & Managing Director",
+      image: "/logos/peopleimg/Mr. N. Vijay Kumar.png",
+    },
+    service: {
+      title: "Precision Fabrication",
+      description: "Specialized engineering and fabrication works for complex military systems, emphasizing indigenous technology development.",
+      icon: Hammer,
+    },
   },
   {
-    title: "Industrial Hydraulic Equipment",
-    description: "Highly precise hydraulic systems designed for stability and durability.",
-    icon: <Cog size={24} />,
-    color: "from-blue-600/20 to-transparent",
-    img: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?q=80&w=800",
-  },
-  {
-    title: "Special Purpose Machines",
-    description: "Custom machines developed specifically for specialized defense applications.",
-    icon: <Zap size={24} />,
-    color: "from-purple-500/20 to-transparent",
-    img: "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?q=80&w=800",
-  },
-  {
-    title: "Automatic Storage Systems",
-    description: "Intelligent storage solutions optimize space and accessibility.",
-    icon: <Box size={24} />,
-    color: "from-slate-500/20 to-transparent",
-    img: "https://images.unsplash.com/photo-1553413002-9c65ce1e582d?q=80&w=800",
-  },
-  {
-    title: "Scrubbers for Process Plants",
-    description: "Efficient scrubbing systems for environmental and process control.",
-    icon: <Factory size={24} />,
-    color: "from-teal-500/20 to-transparent",
-    img: "https://images.unsplash.com/photo-1518314916301-73c13b10c662?q=80&w=800",
-  },
-  {
-    title: "Custom Designing Products",
-    description: "Delivering innovative, precision-engineered custom products tailored to unique industrial, defense, and aerospace requirements.",
-    icon: <Settings size={24} />,
-    color: "from-teal-500/20 to-transparent",
-    img: "https://images.unsplash.com/photo-1518314916301-73c13b10c662?q=80&w=800",
-  },
-  {
-    title: "Service Support for End Product",
-    description: "Offering dedicated end-product service support for seamless operation, maintenance, and long-term customer satisfaction.",
-    icon: <ShieldCheck size={24} />,
-    color: "from-teal-500/20 to-transparent",
-    img: "https://images.unsplash.com/photo-1518314916301-73c13b10c662?q=80&w=800",
+    quote: "Our focus is on indigenous innovation, advanced communication technologies, and strengthening India's strategic defense sectors.",
+    person: {
+      name: "Cdr. Praveen Chandra",
+      role: "Director",
+      image: "/logos/peopleimg/Commodore Praveen Chandra.png",
+    },
+    service: {
+      title: "Defence & Aerospace Systems",
+      description: "Advanced communication platforms, antenna systems, and strategic technology development for the defense ecosystem.",
+      icon: ShieldCheck,
+    },
   },
 ];
 
+const BackgroundGraphics = () => (
+  <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden mix-blend-overlay opacity-30">
+    {/* Subtle concentric curves similar to the reference image */}
+    <div className="absolute top-1/2 left-[60%] w-[120%] h-[150%] -translate-y-1/2 -translate-x-1/2 rounded-[100%] border border-black/5" />
+    <div className="absolute top-1/2 left-[60%] w-[110%] h-[140%] -translate-y-1/2 -translate-x-1/2 rounded-[100%] border border-black/5" />
+    <div className="absolute top-1/2 left-[60%] w-[100%] h-[130%] -translate-y-1/2 -translate-x-1/2 rounded-[100%] border border-black/5" />
+    
+    {/* Blueprint Grid */}
+    <div
+      className="absolute inset-0 opacity-[0.03]"
+      style={{
+        backgroundImage: `
+          linear-gradient(to right, #000 1px, transparent 1px),
+          linear-gradient(to bottom, #000 1px, transparent 1px)
+        `,
+        backgroundSize: "60px 60px",
+      }}
+    />
+  </div>
+);
+
 const Services = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % SHOWCASE_DATA.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const data = SHOWCASE_DATA[activeIndex];
+  const Icon = data.service.icon;
+
+  // Cinematic Apple-style Framer Motion transitions
+  const transition = { duration: 0.8, ease: [0.22, 1, 0.36, 1] };
+  
+  const fadeSlideVariants = {
+    initial: { opacity: 0, y: 30, filter: "blur(12px)", scale: 0.97 },
+    animate: { opacity: 1, y: 0, filter: "blur(0px)", scale: 1 },
+    exit: { opacity: 0, y: -30, filter: "blur(12px)", scale: 1.03 },
+  };
 
   return (
-    <section id="services" className="py-16 md:py-20 bg-white relative overflow-hidden">
-      {/* Background radial glow removed for clean look */}
+    <section
+      id="services"
+      className="relative min-h-[100vh] pt-32 pb-20 overflow-hidden font-sans flex items-center"
+      // One seamless gradient background across the entire section
+      style={{ 
+        background: "linear-gradient(105deg, #ffffff 40%, #e6f0fa 60%, #0d2864 100%)" 
+      }}
+    >
+      <BackgroundGraphics />
 
-      <div className="container mx-auto px-8 relative z-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-8">
-          <div className="max-w-2xl">
-            <motion.span
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="text-blue-600 font-semibold text-xs tracking-[0.3em] uppercase mb-6 inline-block"
-            >
-              Our Expertise
-            </motion.span>
-            <motion.h2
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-black leading-tight"
-            >
-              Precision Solutions for <br />
-              <span className="text-black italic font-light tracking-tighter">Critical Industries</span>
-            </motion.h2>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="mt-8 text-black/60 font-medium text-lg leading-relaxed max-w-xl"
-            >
-
-            </motion.p>
-          </div>
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1, delay: 0.3 }}
-            className="text-black text-sm md:text-base max-w-sm leading-relaxed mb-2 font-medium"
-          >
-
-
-          </motion.div>
-        </div>
-
-        <div ref={containerRef} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-px bg-black/5 border border-black/10 rounded-[24px] overflow-hidden">
-          {services.map((service, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: index * 0.05 }}
-              className="group bg-transparent p-8 flex flex-col h-full relative overflow-hidden transition-colors duration-500 hover:bg-black/5"
-            >
-              <div className="relative z-10 flex h-full flex-col">
-                <div className="mb-8 text-black/40 group-hover:text-blue-600 transition-colors duration-500">
-                  {React.cloneElement(service.icon as React.ReactElement<{ size?: number }>, { size: 20 })}
+      <div className="container mx-auto px-6 lg:px-12 relative z-10 w-full max-w-[1500px]">
+        {/* Unified 2-Column Layout */}
+        <div className="flex flex-col lg:flex-row items-stretch min-h-[600px] w-full gap-8 lg:gap-12">
+          
+          {/* LEFT: Quote (50%) */}
+          <div className="lg:w-[50%] flex flex-col justify-center relative py-12">
+            
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`quote-${activeIndex}`}
+                variants={fadeSlideVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={transition}
+                className="relative z-10 flex flex-col"
+              >
+                {/* Quotation Mark */}
+                <div className="text-[120px] font-serif leading-[0.5] text-black/[0.04] select-none absolute -top-4 -left-4">
+                  &ldquo;
                 </div>
                 
-                <div className="flex flex-col h-full">
-                  <h3 className={`text-lg font-bold text-black ${service.subtitle ? "mb-1" : "mb-3"} leading-tight`}>
-                    {service.title}
-                  </h3>
-                  {/* {service.subtitle && (
-                    <p className="text-black font-semibold text-[11px] uppercase tracking-wider mb-3">
-                      {service.subtitle}
-                    </p>
-                  )}
-                  <p className="text-black/60 font-medium text-[13px] leading-relaxed mb-4 xl:mb-0 flex-grow">
-                    {service.description}
-                  </p> */}
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+                <h3 className="text-2xl md:text-3xl lg:text-[36px] font-medium text-[#1e293b] leading-[1.3] tracking-tight mb-12 relative z-10 mt-8">
+                  &ldquo;{data.quote}&rdquo;
+                </h3>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="w-full flex justify-center mt-24 md:mt-32 mb-4 md:mb-8 px-4"
-        >
-          <p className="text-center text-gray-700 font-medium text-lg md:text-xl lg:text-2xl max-w-4xl leading-relaxed text-balance mx-auto">
-            We provide a comprehensive range of precision mechanical and hydraulic products, engineered for mission-critical reliability.
-          </p>
-        </motion.div>
+                <div>
+                  <div className="w-8 h-[2px] bg-blue-500 mb-6" />
+                  <div className="text-lg font-bold text-black mb-1">{data.person.name}</div>
+                  <div className="text-[15px] font-medium text-black/50">{data.person.role}</div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Pagination Dots */}
+            <div className="absolute -bottom-4 left-0 flex gap-3">
+              {SHOWCASE_DATA.map((_, i) => (
+                <div
+                  key={i}
+                  className={`w-2 h-2 rounded-full transition-all duration-500 ${
+                    i === activeIndex ? "bg-blue-600 scale-125" : "bg-black/15"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* RIGHT: Team Member Portrait (50%) */}
+          <div className="lg:w-[50%] relative flex justify-end items-end h-[500px] lg:h-[600px]">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`portrait-${activeIndex}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.8 }}
+                className="absolute inset-0 flex items-end justify-end"
+              >
+                {/* Slow Zoom Effect on a slightly smaller container */}
+                {data.person.image && (
+                  <motion.div
+                    className="w-full h-full relative flex justify-center items-end"
+                    initial={{ scale: 1 }}
+                    animate={{ scale: 1.05 }}
+                    transition={{ duration: 5, ease: "linear" }}
+                  >
+                    <img
+                      src={data.person.image}
+                      alt={data.person.name}
+                      className="h-[400px] w-[320px] lg:h-[520px] lg:w-[420px] object-cover object-top rounded-2xl md:rounded-[32px] overflow-hidden shadow-2xl"
+                    />
+                  </motion.div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Glassmorphism Badge */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`badge-${activeIndex}`}
+                variants={fadeSlideVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={transition}
+                className="absolute bottom-8 right-4 w-[260px] p-5 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl z-20"
+              >
+                <h4 className="text-white text-lg font-bold tracking-tight mb-1">{data.person.name}</h4>
+                <p className="text-white/80 text-xs font-medium">{data.person.role}</p>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+        </div>
       </div>
     </section>
   );

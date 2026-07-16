@@ -69,62 +69,14 @@ const services = [
     icon: <ShieldCheck size={28} strokeWidth={1.5} />,
   },
 ];
+import Services from "@/components/sections/Services";
 
 export default function ServicesPage() {
   return (
     <main className="relative min-h-screen font-sans text-black bg-[#F9F9F9]">
 
-        {/* ─── CINEMATIC HERO SECTION ─── */}
-        <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
-          {/* Background Image */}
-          <div
-            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-            style={{
-              backgroundImage: "url('/services-background.png')"
-            }}
-          />
-          {/* Semi-transparent Black Overlay */}
-          <div className="absolute inset-0 z-10 bg-black/60" />
-
-          {/* Centered Heading */}
-          <div className="relative z-20 text-center px-6">
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-              className="text-6xl md:text-8xl font-bold text-white uppercase tracking-[0.1em]"
-            >
-              Services
-            </motion.h1>
-            <motion.div
-              initial={{ opacity: 0, width: 0 }}
-              animate={{ opacity: 1, width: "120px" }}
-              transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
-              className="h-[2px] bg-white mx-auto mt-8 mb-12"
-            />
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.8 }}
-              className="text-white/80 font-medium text-lg md:text-2xl max-w-2xl mx-auto leading-relaxed italic"
-            >
-              “We don’t just build components — we engineer mission-critical solutions with precision, reliability, and purpose.”
-            </motion.p>
-          </div>
-
-          {/* Scroll Indicator */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.5, duration: 1 }}
-            className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-3 z-30"
-          >
-            <span className="w-2.5 h-2.5 rounded-full bg-white/60 animate-bounce" />
-            <span className="text-white/60 text-sm md:text-base font-medium tracking-wide">
-              Keep scrolling
-            </span>
-          </motion.div>
-        </section>
+        {/* ─── NEW CINEMATIC SERVICES PRESENTATION ─── */}
+        <Services />
 
         {/* ─── CAPABILITIES OVERVIEW SECTION ─── */}
         <section className="relative z-20 w-full pt-16 md:pt-24 px-6 md:px-12 flex justify-center bg-[#F9F9F9]">
