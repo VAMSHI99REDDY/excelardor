@@ -108,13 +108,13 @@ const Footer = () => {
               <div className="flex items-start gap-4">
                 <MapPin size={18} className="text-primary mt-1 shrink-0 opacity-40" />
                 <a
-                  href="https://www.google.com/maps/search/?api=1&query=D-165/A,+Phase-3,+IDA+Jeedimetla,+Apurupa+Colony,+Suraram,+Hyderabad,+Telangana+500055"
+                  href="https://www.google.com/maps/search/?api=1&query=D165,+IDA+Jeedimetla,+Chinthal,+Jeedimetla,+Hyderabad,+Telangana+500055"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Open company location in Google Maps"
                   className="text-sm leading-relaxed cursor-pointer"
                 >
-                  D-165/A,Phase - 3, IDA Jeedimetla, Apurupa Colony, Suraram, Hyderabad, Telangana 500055
+                  D165, IDA Jeedimetla, Chinthal, Jeedimetla, Hyderabad, Telangana 500055
                 </a>
               </div>
               <div className="flex items-center gap-4">

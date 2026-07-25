@@ -105,13 +105,13 @@ ${new Date().toLocaleString()}`;
                     Location
                   </span>
                   <a
-                    href="https://www.google.com/maps/search/?api=1&query=D-165/A,+Phase-3,+IDA+Jeedimetla,+Apurupa+Colony,+Suraram,+Hyderabad,+Telangana+500055"
+                    href="https://www.google.com/maps/search/?api=1&query=D165,+IDA+Jeedimetla,+Chinthal,+Jeedimetla,+Hyderabad,+Telangana+500055"
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Open company location in Google Maps"
                     className="text-black font-medium text-sm sm:text-base md:text-lg leading-relaxed break-words block cursor-pointer"
                   >
-                    D-165/A, Phase - 3, IDA Jeedimetla, Apurupa Colony, Suraram, Hyderabad, Telangana 500055
+                    D165, IDA Jeedimetla, Chinthal, Jeedimetla, Hyderabad, Telangana 500055
                   </a>
                 </div>
               </div>
