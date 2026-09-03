@@ -240,54 +240,42 @@ const ApplicationModal = ({ job, onClose }: { job: Job, onClose: () => void }) =
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validate()) {
       setIsSubmitting(true);
+      setErrors({});
 
-      const subject = `Job Application - ${job.title} - ${formData.name}`;
-      const body = `Dear Hiring Team,
+      try {
+        const formDataObj = new FormData();
+        formDataObj.append("name", formData.name);
+        formDataObj.append("email", formData.email);
+        formDataObj.append("phone", formData.phone);
+        formDataObj.append("experience", formData.experience);
+        formDataObj.append("company", formData.company);
+        formDataObj.append("location", formData.location);
+        formDataObj.append("message", formData.message);
+        formDataObj.append("position", job.title);
+        formDataObj.append("file", file as Blob);
 
-Please find my job application details below.
+        const response = await fetch("/api/apply", {
+          method: "POST",
+          body: formDataObj,
+        });
 
----------------------------------------
-Candidate Details
----------------------------------------
+        const data = await response.json();
 
-Full Name:
-${formData.name}
-
-Email:
-${formData.email}
-
-Phone:
-${formData.phone}
-
-Position Applied:
-${job.title}
-
-Years of Experience:
-${formData.experience}
-
-Current Company:
-${formData.company || "N/A"}
-
-Current Location:
-${formData.location}
-
-Cover Letter:
-${formData.message || "N/A"}
-
-Thank you.
-
-Regards,
-${formData.name}`;
-
-      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=excelardor@gmail.com&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      window.open(gmailUrl, "_blank");
-
-      setIsSubmitting(false);
-      setIsSuccess(true);
+        if (!response.ok) {
+          setErrors({ submit: data.error || "Failed to submit application" });
+        } else {
+          setIsSuccess(true);
+        }
+      } catch (error) {
+        console.error("Submission error:", error);
+        setErrors({ submit: "An unexpected error occurred. Please try again." });
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -322,6 +310,11 @@ ${formData.name}`;
 
         {!isSuccess ? (
           <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+            {errors.submit && (
+              <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg">
+                {errors.submit}
+              </div>
+            )}
             {/* Scrollable Form Body */}
             <div data-lenis-prevent className="flex-1 overflow-y-auto p-6 md:p-8 space-y-5 min-h-0 relative">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -461,16 +454,16 @@ ${formData.name}`;
             >
               <CheckCircle2 size={48} />
             </motion.div>
-            <h3 className="text-3xl font-black text-black tracking-tight mb-4">Thank You!</h3>
+            <h3 className="text-3xl font-black text-black tracking-tight mb-4">Application Submitted Successfully</h3>
             <p className="text-gray-600 text-lg max-w-sm mb-8">
-              Gmail has been opened in a new tab. <br /><br />
-              <strong>Please attach your resume manually before sending the email.</strong>
+              Thank you for submitting your application. <br /><br />
+              <strong>Our team will review your details and contact you shortly. A confirmation email has been sent to your email address.</strong>
             </p>
             <button
               onClick={onClose}
               className="px-8 py-4 bg-gray-100 text-black font-bold uppercase tracking-widest text-sm rounded-xl hover:bg-gray-200 transition-colors"
             >
-              Close Window
+              Back to Careers
             </button>
           </div>
         )}
