@@ -24,8 +24,14 @@ export async function POST(request: Request) {
     }
 
     // Validate file type & size
-    if (file.type !== 'application/pdf') {
-      return NextResponse.json({ error: 'Only PDF files are allowed' }, { status: 400 });
+    const allowedMimeTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ];
+    const hasValidExtension = /\.(pdf|doc|docx)$/i.test(file.name);
+    if (!allowedMimeTypes.includes(file.type) && !hasValidExtension) {
+      return NextResponse.json({ error: 'Only PDF and Word (.doc, .docx) documents are allowed' }, { status: 400 });
     }
     if (file.size > 5 * 1024 * 1024) {
       return NextResponse.json({ error: 'File size must be less than 5MB' }, { status: 400 });
@@ -43,13 +49,18 @@ export async function POST(request: Request) {
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('resume')
       .upload(filePath, fileBuffer, {
-        contentType: file.type,
+        contentType: file.type || 'application/octet-stream',
         upsert: false
       });
 
     if (uploadError) {
       console.error('Storage Upload Error:', uploadError);
-      return NextResponse.json({ error: 'Failed to upload resume' }, { status: 500 });
+      const errStr = String(uploadError?.message || '') + JSON.stringify(uploadError);
+      const isConnectionError = errStr.includes('ENOTFOUND') || errStr.includes('fetch failed');
+      const errorMessage = isConnectionError
+        ? 'Database connection failed: Supabase project is paused or unreachable. Please restore the project in the Supabase Dashboard.'
+        : `Failed to upload resume: ${uploadError.message || 'Storage bucket error'}`;
+      return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 
     // Insert Application into Database

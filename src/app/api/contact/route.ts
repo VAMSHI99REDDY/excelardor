@@ -47,7 +47,12 @@ export async function POST(request: Request) {
 
     if (dbError) {
       console.error('Database Insert Error:', dbError);
-      return NextResponse.json({ error: 'Failed to save inquiry' }, { status: 500 });
+      const errStr = String(dbError?.message || '') + JSON.stringify(dbError);
+      const isConnectionError = errStr.includes('ENOTFOUND') || errStr.includes('fetch failed');
+      const errorMessage = isConnectionError
+        ? 'Database connection failed: Supabase project is paused or unreachable. Please restore the project in the Supabase Dashboard.'
+        : 'Failed to save inquiry';
+      return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 
     // Send Admin Notification Email

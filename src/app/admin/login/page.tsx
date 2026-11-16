@@ -32,6 +32,26 @@ export default function AdminLogin() {
     }
   };
 
+  const handleAutoSetup = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/setup-admin');
+      const data = await res.json();
+      if (data.success) {
+        setEmail(data.email);
+        setPassword(data.password);
+        alert(`Admin account created successfully!\n\nEmail: ${data.email}\nPassword: ${data.password}\n\nClick 'Login' now.`);
+      } else {
+        setError(data.error || 'Failed to initialize admin');
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Error initializing admin');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 font-sans">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
@@ -72,6 +92,17 @@ export default function AdminLogin() {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
+
+        <div className="mt-6 pt-4 border-t border-gray-100 text-center">
+          <button
+            type="button"
+            onClick={handleAutoSetup}
+            disabled={loading}
+            className="text-xs text-[#4A6B35] font-bold hover:underline py-1"
+          >
+            ⚡ First time? Click here to auto-create admin login
+          </button>
+        </div>
       </div>
     </div>
   );
